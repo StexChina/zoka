@@ -1,10 +1,10 @@
-// sw.js (primer)
-const CACHE_NAME = 'zoka-cache-v5';
+// sw.js (primer za v8.2)
+const CACHE_NAME = 'zoka-cache-v6';
 const ASSETS = [
   './',
-  './index.html?v=81',
-  './manifest.webmanifest?v=81',
-  './sw.js?v=81'
+  './index.html?v=82',
+  './manifest.webmanifest?v=82',
+  './sw.js?v=82'
 ];
 
 self.addEventListener('install', (e) => {
