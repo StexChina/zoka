@@ -6,16 +6,14 @@
   <title>Zoka</title>
   <meta name="theme-color" content="#0f172a"/>
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <link rel="manifest" href="./manifest.webmanifest?v=81">
+  <link rel="manifest" href="./manifest.webmanifest?v=82">
   <style>
-    /* Osnovna paleta (dark default) */
     :root{
       --bg:#0f172a; --panel:#111827; --muted:#94a3b8; --text:#e5e7eb;
       --accent:#22c55e; --accent2:#3b82f6; --warn:#f59e0b; --danger:#ef4444;
       --chip:#1f2937; --card:#0b1220; --border:#1f2937;
     }
-    *{box-sizing:border-box}
-    html,body{height:100%}
+    *{box-sizing:border-box} html,body{height:100%}
     body{margin:0;background:var(--bg);color:var(--text);
       font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Arial;line-height:1.35}
 
@@ -56,7 +54,6 @@
     .warning{display:none;background:#3a0c0c;border-bottom:1px solid #7f1d1d;color:#fecaca;padding:10px 12px}
     .warning.show{display:flex;align-items:center;gap:10px;justify-content:space-between}
 
-    /* tabela */
     table{width:100%;border-collapse:separate;border-spacing:0 6px}
     th,td{padding:8px 10px;border-bottom:1px solid #0f172a;vertical-align:top}
     th{color:#cbd5e1;text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.04em}
@@ -64,7 +61,6 @@
     tr td:first-child, tr th:first-child{border-top-left-radius:8px;border-bottom-left-radius:8px}
     tr td:last-child, tr th:last-child{border-top-right-radius:8px;border-bottom-right-radius:8px}
 
-    /* mobilno */
     @media(max-width: 768px){
       .grid{grid-template-columns: 1fr}
       .toolbar{position:sticky;bottom:0;z-index:20;background:linear-gradient(180deg,#0a0f1d,#0b1220);
@@ -227,7 +223,6 @@
     <section class="card">
       <div class="section-title">Prisustvo (smene)</div>
 
-      <!-- Izbor događaja unutar Prisustva -->
       <div class="row split no-print">
         <select id="eventSelect"></select>
         <div class="chip" id="eventInfo">Nije izabran događaj</div>
@@ -246,7 +241,6 @@
         <input id="timeTo" type="time" />
       </div>
 
-      <!-- Plaćanje -->
       <div class="row split no-print">
         <select id="payType">
           <option value="hourly">Plaćanje po satu</option>
@@ -290,7 +284,6 @@
         </table>
       </div>
 
-      <!-- Rezimei -->
       <div class="card" style="margin-top:12px">
         <div class="section-title">Rezimei</div>
         <div id="summaryTotals" class="list"></div>
@@ -299,120 +292,152 @@
   </main>
 
   <script>
-    /* Service Worker */
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js?v=81'));
-    }
+  document.addEventListener('DOMContentLoaded', function(){
+    /* SW */
+    try{
+      if('serviceWorker' in navigator){
+        window.addEventListener('load', function(){
+          try{ navigator.serviceWorker.register('./sw.js?v=82'); }catch(e){}
+        });
+      }
+    }catch(e){}
 
     /* Tema */
-    const THEME_KEY = 'zoka_theme';
-    const themeSelect = document.getElementById('themeSelect');
+    var THEME_KEY='zoka_theme';
+    var themeSelect=document.getElementById('themeSelect');
     function applyTheme(name){
-      const root = document.documentElement;
-      root.setAttribute('data-theme', name);
-      try { localStorage.setItem(THEME_KEY, name); } catch(e){}
-      const meta = document.querySelector('meta[name="theme-color"]');
-      if(meta){
-        const bg = getComputedStyle(root).getPropertyValue('--bg').trim() || '#0f172a';
-        meta.setAttribute('content', bg);
-      }
+      try{
+        document.documentElement.setAttribute('data-theme', name);
+        try{ localStorage.setItem(THEME_KEY, name); }catch(e){}
+        var meta=document.querySelector('meta[name="theme-color"]');
+        if(meta){
+          var bg=getComputedStyle(document.documentElement).getPropertyValue('--bg');
+          if(bg){ meta.setAttribute('content', bg.trim()); }
+        }
+      }catch(e){}
     }
     (function initTheme(){
-      let t=null; try{ t=localStorage.getItem(THEME_KEY);}catch(e){}
-      if(!t){ const prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches; t = prefersLight?'light':'dark'; }
+      var t=null; try{ t=localStorage.getItem(THEME_KEY); }catch(e){}
+      if(!t){
+        try{
+          var prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+          t = prefersLight ? 'light' : 'dark';
+        }catch(e){ t='dark'; }
+      }
       applyTheme(t);
-      if(themeSelect){ themeSelect.value=t; themeSelect.addEventListener('change', e=>applyTheme(e.target.value)); }
+      if(themeSelect){ themeSelect.value=t; themeSelect.addEventListener('change', function(e){ applyTheme(e.target.value); }); }
     })();
 
-    /* ---------- storage & state ---------- */
-    const LS_KEY = 'zoka_v81';
-    let storageOK = true;
-    try{ localStorage.setItem('__zoka_test','ok'); storageOK = localStorage.getItem('__zoka_test') === 'ok'; localStorage.removeItem('__zoka_test'); }catch(e){ storageOK=false; }
-    const warn = document.getElementById('warn'); if(!storageOK){ warn.classList.add('show'); }
-
+    /* Storage & State */
+    var LS_KEY='zoka_v82';
+    var storageOK=true;
+    try{ localStorage.setItem('__zoka_test','ok'); storageOK = (localStorage.getItem('__zoka_test')==='ok'); localStorage.removeItem('__zoka_test'); }catch(e){ storageOK=false; }
+    var warn=document.getElementById('warn'); if(!storageOK && warn){ warn.classList.add('show'); }
     function cryptoRandom(){ return Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4); }
-    function defaultTemplates(){
-      return [
-        { id:'t1', label:'07:00–15:00', from:'07:00', to:'15:00' },
-        { id:'t2', label:'15:00–23:00', from:'15:00', to:'23:00' },
-        { id:'t3', label:'23:00–07:00', from:'23:00', to:'07:00' }
-      ];
-    }
+    function defaultTemplates(){ return [
+      { id:'t1', label:'07:00–15:00', from:'07:00', to:'15:00' },
+      { id:'t2', label:'15:00–23:00', from:'15:00', to:'23:00' },
+      { id:'t3', label:'23:00–07:00', from:'23:00', to:'07:00' }
+    ]; }
     function loadRaw(){
       if(!storageOK) return { events:[], selectedEventId:null, staff:[], positions:[], templates:defaultTemplates() };
-      const raw = localStorage.getItem(LS_KEY);
-      if(raw){ try{ return JSON.parse(raw); }catch{} }
+      try{
+        var raw = localStorage.getItem(LS_KEY);
+        if(raw) return JSON.parse(raw);
+      }catch(e){}
       return { events:[], selectedEventId:null, staff:[], positions:[], templates:defaultTemplates() };
     }
     function saveRaw(){ if(storageOK){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){} } }
+    var state = loadRaw();
 
-    let state = loadRaw();
-
-    /* ---------- helpers ---------- */
-    const $ = s => document.querySelector(s);
-    const el = (t,a={},...c)=>{ const n=document.createElement(t);
-      for(const [k,v] of Object.entries(a)){
-        if(k==='class') n.className=v;
-        else if(k==='dataset'){ for(const [dk,dv] of Object.entries(v)) n.dataset[dk]=dv; }
-        else if(k.startsWith('on') && typeof v==='function') n.addEventListener(k.slice(2),v);
-        else if(v!==undefined && v!==null) n.setAttribute(k,v);
+    /* Helpers */
+    function $(sel){ return document.querySelector(sel); }
+    function el(tag, attrs){
+      var node=document.createElement(tag);
+      if(attrs){
+        for(var k in attrs){
+          if(k==='class'){ node.className=attrs[k]; }
+          else if(k==='dataset'){ var ds=attrs[k]; for(var dk in ds){ node.dataset[dk]=ds[dk]; } }
+          else if(k.indexOf('on')===0 && typeof attrs[k]==='function'){ node.addEventListener(k.slice(2), attrs[k]); }
+          else if(attrs[k]!==undefined && attrs[k]!==null){ node.setAttribute(k, attrs[k]); }
+        }
       }
-      for(const x of c) n.append(x instanceof Node?x:document.createTextNode(x)); return n; };
-    const minutes=(hhmm)=>{ const [h,m]=(hhmm||'').split(':').map(Number); if([h,m].some(x=>isNaN(x))) return null; return h*60+m; };
-    const hoursDiff=(from,to)=>{ const a=minutes(from), b=minutes(to); if(a===null||b===null) return 0; let end=b; if(b<a) end+=1440; return Math.round(((end-a)/60)*100)/100; };
-    const overlap=(from1,to1,from2,to2)=>{ const span=(f,t)=>{ let s=minutes(f), e=minutes(t); if(s===null||e===null) return null; if(e<s) e+=1440; return [s,e] }; const A=span(from1,to1), B=span(from2,to2); if(!A||!B) return false; return Math.max(A[0],B[0]) < Math.min(A[1],B[1]); };
-    const moneyFmt = v => (Number(v||0)).toLocaleString('sr-RS', {minimumFractionDigits:2, maximumFractionDigits:2});
-    const formatDate = d => d ? new Date(d).toLocaleDateString('sr-Latn-RS') : '';
-    const formatRange = ev => { const a=formatDate(ev.dateFrom), b=formatDate(ev.dateTo); return (a&&b)?(a===b?a:`${a} – ${b}`):(a||b||''); };
+      for(var i=2;i<arguments.length;i++){ var c=arguments[i]; node.appendChild(c instanceof Node? c : document.createTextNode(String(c))); }
+      return node;
+    }
+    function minutes(hhmm){ var parts=(hhmm||'').split(':'); var h=parseInt(parts[0],10), m=parseInt(parts[1],10); if(isNaN(h)||isNaN(m)) return null; return h*60+m; }
+    function hoursDiff(from,to){ var a=minutes(from), b=minutes(to); if(a===null||b===null) return 0; if(b<a) b+=1440; return Math.round(((b-a)/60)*100)/100; }
+    function overlap(f1,t1,f2,t2){
+      function span(f,t){ var s=minutes(f), e=minutes(t); if(s===null||e===null) return null; if(e<s) e+=1440; return [s,e]; }
+      var A=span(f1,t1), B=span(f2,t2); if(!A||!B) return false; return Math.max(A[0],B[0]) < Math.min(A[1],B[1]);
+    }
+    function moneyFmt(v){
+      var n = Number(v||0);
+      try{ return n.toLocaleString('sr-RS',{minimumFractionDigits:2,maximumFractionDigits:2}); }catch(e){ return (Math.round(n*100)/100).toFixed(2); }
+    }
+    function formatDate(d){ try{ return d ? new Date(d).toLocaleDateString('sr-Latn-RS') : ''; }catch(e){ return d||''; } }
+    function formatRange(ev){ var a=formatDate(ev.dateFrom), b=formatDate(ev.dateTo); return (a&&b)?(a===b?a:(a+' – '+b)):(a||b||''); }
 
-    /* ---------- tabs ---------- */
-    const tabs = document.querySelectorAll('.tab');
-    const views = {
+    /* Tabs */
+    var tabs=document.querySelectorAll('.tab');
+    var views={
       events: $('#view-events'),
       staff: $('#view-staff'),
       positions: $('#view-positions'),
       shifts: $('#view-shifts')
     };
-    tabs.forEach(t=>t.addEventListener('click', ()=>{
-      tabs.forEach(x=>x.classList.remove('active'));
-      t.classList.add('active');
-      const id = t.dataset.tab;
-      Object.entries(views).forEach(([k,v])=> v.style.display = (k===id?'grid':'none'));
-    }));
-
-    /* ---------- backup/share/csv/pdf ---------- */
-    function downloadBlob(data, name, type){
-      const blob=new Blob([data],{type}); const a=document.createElement('a');
-      a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(()=>URL.revokeObjectURL(a.href),1000); return blob;
+    for(var ti=0; ti<tabs.length; ti++){
+      tabs[ti].addEventListener('click', function(){
+        for(var tj=0; tj<tabs.length; tj++) tabs[tj].classList.remove('active');
+        this.classList.add('active');
+        var id=this.getAttribute('data-tab');
+        for(var k in views){ if(views[k]) views[k].style.display = (k===id? 'grid':'none'); }
+      });
     }
-    function backup(){ downloadBlob(JSON.stringify(state,null,2), `zoka_backup_${new Date().toISOString().slice(0,10)}.json`, 'application/json'); }
-    $('#btnBackup').addEventListener('click', backup);
-    const btnBackup2 = $('#btnBackup2'); if(btnBackup2) btnBackup2.addEventListener('click', backup);
+
+    /* Backup / deljenje / CSV / PDF */
+    function downloadBlob(data, name, type){
+      try{
+        var blob=new Blob([data],{type:type});
+        var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name;
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function(){ URL.revokeObjectURL(a.href); },1000);
+        return blob;
+      }catch(e){ alert('Greška pri preuzimanju: '+e.message); }
+    }
+    function backup(){
+      downloadBlob(JSON.stringify(state,null,2), 'zoka_backup_'+new Date().toISOString().slice(0,10)+'.json', 'application/json');
+    }
+    var btnBackup=document.getElementById('btnBackup'); if(btnBackup) btnBackup.addEventListener('click', backup);
+    var btnBackup2=document.getElementById('btnBackup2'); if(btnBackup2) btnBackup2.addEventListener('click', backup);
 
     async function shareFile(name, blob, type){
-      const file = new File([blob], name, {type});
-      if(navigator.canShare && navigator.canShare({files:[file]})){
-        try{ await navigator.share({ files:[file], title:'Zoka', text:'Deljenje fajla' }); }
-        catch(e){ if(e?.name!=='AbortError') alert('Deljenje nije uspelo: '+e.message); }
-      }else{
-        downloadBlob(await blob.arrayBuffer(), name, type);
-        alert('Fajl je sačuvan u Downloads – podeli ga ručno.');
+      try{
+        var file=new File([blob], name, {type:type});
+        if(navigator.canShare && navigator.canShare({files:[file]})){
+          await navigator.share({files:[file], title:'Zoka', text:'Deljenje fajla'});
+        }else{
+          downloadBlob(await blob.arrayBuffer(), name, type);
+          alert('Fajl je sačuvan u Downloads – podeli ga ručno.');
+        }
+      }catch(e){
+        if(!(e && e.name==='AbortError')) alert('Deljenje nije uspelo: '+e.message);
       }
     }
     async function shareBackup(){
-      const blob = new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
-      await shareFile(`zoka_backup_${new Date().toISOString().slice(0,10)}.json`, blob, 'application/json');
+      var blob = new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
+      await shareFile('zoka_backup_'+new Date().toISOString().slice(0,10)+'.json', blob, 'application/json');
     }
-    $('#btnShareBackup').addEventListener('click', shareBackup);
-    const btnShareBackup2 = $('#btnShareBackup2'); if(btnShareBackup2) btnShareBackup2.addEventListener('click', shareBackup);
+    var btnShareBackup=document.getElementById('btnShareBackup'); if(btnShareBackup) btnShareBackup.addEventListener('click', function(){ shareBackup(); });
+    var btnShareBackup2=document.getElementById('btnShareBackup2'); if(btnShareBackup2) btnShareBackup2.addEventListener('click', function(){ shareBackup(); });
 
     function makeCSV(){
-      const ev = state.events.find(e=>e.id===state.selectedEventId);
+      var ev = state.events.filter(function(e){return e.id===state.selectedEventId;})[0];
       if(!ev) return {csv:'',name:'smene.csv'};
-      const posMap = Object.fromEntries(state.positions.map(p=>[p.id,p.name]));
-      const rows=[['Događaj','Period','Odgovorno lice','Datum smene','Službenik','Uloga','Pozicija','Od','Do','Sati','Plaćanje','Iznos (RSD)','Status','Napomena']];
-      (ev.shifts||[]).forEach(s=>{
+      var posMap={}; for(var i=0;i<state.positions.length;i++){ posMap[state.positions[i].id]=state.positions[i].name; }
+      var rows=[['Događaj','Period','Odgovorno lice','Datum smene','Službenik','Uloga','Pozicija','Od','Do','Sati','Plaćanje','Iznos (RSD)','Status','Napomena']];
+      for(var j=0;j<(ev.shifts||[]).length;j++){
+        var s=ev.shifts[j];
         rows.push([
           ev.name, formatRange(ev), ev.responsible||'',
           s.date||'', s.guard||'', s.role||'', posMap[s.posId]||'',
@@ -420,421 +445,425 @@
           s.payType==='flat'?'Dnevnica':'Po satu',
           (s.amount||0).toFixed(2), s.status||'', s.note||''
         ]);
-      });
-      const csv = rows.map(r=>r.map(x=>{
-        const s=(x??'').toString(); return (s.includes(';')||s.includes('"')||s.includes('\n')) ? '"'+s.replace(/"/g,'""')+'"' : s;
-      }).join(';')).join('\n');
-      const name = `smene_${(ev.name||'dogadjaj').replace(/\s+/g,'_')}.csv`;
-      return {csv,name};
+      }
+      var csv = rows.map(function(r){
+        return r.map(function(x){
+          var s = (x==null?'':String(x));
+          return (s.indexOf(';')>-1 || s.indexOf('"')>-1 || s.indexOf('\n')>-1) ? '"'+s.replace(/"/g,'""')+'"' : s;
+        }).join(';');
+      }).join('\n');
+      var name = 'smene_'+(ev.name||'dogadjaj').replace(/\s+/g,'_')+'.csv';
+      return {csv:csv,name:name};
     }
-    $('#btnExportCSV').addEventListener('click', ()=>{
-      const {csv,name}=makeCSV(); if(!csv) return alert('Izaberi događaj.');
-      downloadBlob(csv, name, 'text/csv;charset=utf-8;');
-    });
-    $('#btnShareCSV').addEventListener('click', async ()=>{
-      const {csv,name}=makeCSV(); if(!csv) return alert('Izaberi događaj.');
-      await shareFile(name, new Blob([csv],{type:'text/csv'}), 'text/csv');
-    });
+    var btnExportCSV=document.getElementById('btnExportCSV');
+    if(btnExportCSV){ btnExportCSV.addEventListener('click', function(){
+      var out=makeCSV(); if(!out.csv){ alert('Izaberi događaj.'); return; }
+      downloadBlob(out.csv, out.name, 'text/csv;charset=utf-8;');
+    });}
+    var btnShareCSV=document.getElementById('btnShareCSV');
+    if(btnShareCSV){ btnShareCSV.addEventListener('click', async function(){
+      var out=makeCSV(); if(!out.csv){ alert('Izaberi događaj.'); return; }
+      await shareFile(out.name, new Blob([out.csv],{type:'text/csv'}), 'text/csv');
+    });}
 
     function printPDF(){
-      const ev = state.events.find(e=>e.id===state.selectedEventId);
-      if(!ev) return alert('Izaberi događaj.');
-      const posMap = Object.fromEntries(state.positions.map(p=>[p.id,p.name]));
-      const rows=(ev.shifts||[]).slice().sort((a,b)=>{
-        const d=(a.date||'').localeCompare(b.date||''); if(d!==0) return d;
+      var ev = state.events.filter(function(e){return e.id===state.selectedEventId;})[0];
+      if(!ev){ alert('Izaberi događaj.'); return; }
+      var posMap={}; for(var i=0;i<state.positions.length;i++){ posMap[state.positions[i].id]=state.positions[i].name; }
+      var rows=(ev.shifts||[]).slice().sort(function(a,b){
+        var d=(a.date||'').localeCompare(b.date||''); if(d!==0) return d;
         return (a.from||'').localeCompare(b.from||'');
       });
-      const totalHours = rows.reduce((s,x)=>s+(x.hours||0),0);
-      const totalAmount = rows.reduce((s,x)=>s+(x.amount||0),0);
-      const win = window.open('', '_blank');
-      const css = `<style>body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;padding:16px;color:#000;}
-      h2{margin:0 0 8px} .muted{color:#555} table{width:100%;border-collapse:collapse}
-      th,td{border:1px solid #999;padding:6px;text-align:left;vertical-align:top;font-size:12px}
-      .sign{margin-top:20px;display:flex;gap:32px} .box{border:1px solid #999;padding:12px;min-height:80px;flex:1}
-      .sum{margin-top:12px}</style>`;
-      const head = `<h2>${ev.name||'Događaj'} – ${formatRange(ev)}</h2>
-        <div class="muted">Odgovorno lice: ${ev.responsible||''}</div>
-        <div class="sum"><b>Ukupno sati:</b> ${totalHours.toFixed(2)} • <b>Ukupan iznos:</b> ${moneyFmt(totalAmount)} RSD</div>`;
-      const tableHead = `<table><thead><tr>
-        <th>#</th><th>Datum</th><th>Službenik</th><th>Uloga</th><th>Pozicija</th><th>Od</th><th>Do</th><th>Sati</th><th>Plaćanje</th><th>Iznos</th><th>Status</th><th>Napomena</th>
-        </tr></thead><tbody>`;
-      const tableRows = rows.map((s,i)=>`<tr>
-        <td>${i+1}</td><td>${s.date||''}</td><td>${s.guard||''}</td><td>${s.role||''}</td>
-        <td>${posMap[s.posId]||''}</td><td>${s.from||''}</td><td>${s.to||''}</td>
-        <td>${(s.hours||0).toFixed(2)}</td><td>${s.payType==='flat'?'Dnevnica':'Po satu'}</td>
-        <td>${moneyFmt(s.amount||0)}</td><td>${s.status||''}</td><td>${s.note||''}</td></tr>`).join('');
-      const foot = `</tbody></table><div class="sign">
-        <div class="box">Šef smene:</div><div class="box">Nadzor/klijent:</div><div class="box">Odgovorno lice: ${ev.responsible||''}</div>
-        </div>`;
-      win.document.write(`<html><head><meta charset="UTF-8"><title>Štampa – ${ev.name||''}</title>${css}</head><body>${head}${tableHead}${tableRows}${foot}</body></html>`);
-      win.document.close(); win.focus(); win.onload = ()=> win.print();
+      var totalHours=0, totalAmount=0;
+      for(i=0;i<rows.length;i++){ totalHours+=rows[i].hours||0; totalAmount+=rows[i].amount||0; }
+      var win=window.open('', '_blank');
+      var css='<style>body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;padding:16px;color:#000;}h2{margin:0 0 8px} .muted{color:#555} table{width:100%;border-collapse:collapse} th,td{border:1px solid #999;padding:6px;text-align:left;vertical-align:top;font-size:12px} .sign{margin-top:20px;display:flex;gap:32px} .box{border:1px solid #999;padding:12px;min-height:80px;flex:1} .sum{margin-top:12px}</style>';
+      var head='<h2>'+ (ev.name||'Događaj') +' – '+formatRange(ev)+'</h2><div class="muted">Odgovorno lice: '+(ev.responsible||'')+'</div><div class="sum"><b>Ukupno sati:</b> '+totalHours.toFixed(2)+' • <b>Ukupan iznos:</b> '+moneyFmt(totalAmount)+' RSD</div>';
+      var tableHead='<table><thead><tr><th>#</th><th>Datum</th><th>Službenik</th><th>Uloga</th><th>Pozicija</th><th>Od</th><th>Do</th><th>Sati</th><th>Plaćanje</th><th>Iznos</th><th>Status</th><th>Napomena</th></tr></thead><tbody>';
+      var tableRows='';
+      for(i=0;i<rows.length;i++){
+        var s=rows[i];
+        tableRows+='<tr><td>'+ (i+1) +'</td><td>'+ (s.date||'') +'</td><td>'+ (s.guard||'') +'</td><td>'+ (s.role||'') +'</td><td>'+ (posMap[s.posId]||'') +'</td><td>'+ (s.from||'') +'</td><td>'+ (s.to||'') +'</td><td>'+ (s.hours||0).toFixed(2) +'</td><td>'+ (s.payType==='flat'?'Dnevnica':'Po satu') +'</td><td>'+ moneyFmt(s.amount||0) +'</td><td>'+ (s.status||'') +'</td><td>'+ (s.note||'') +'</td></tr>';
+      }
+      var foot='</tbody></table><div class="sign"><div class="box">Šef smene:</div><div class="box">Nadzor/klijent:</div><div class="box">Odgovorno lice: '+(ev.responsible||'')+'</div></div>';
+      win.document.write('<html><head><meta charset="UTF-8"><title>Štampa – '+(ev.name||'')+'</title>'+css+'</head><body>'+head+tableHead+tableRows+foot+'</body></html>');
+      win.document.close(); win.focus(); win.onload=function(){ win.print(); };
     }
-    $('#btnPrint').addEventListener('click', printPDF);
+    var btnPrint=document.getElementById('btnPrint'); if(btnPrint) btnPrint.addEventListener('click', printPDF);
 
-    /* ---------- EVENTS ---------- */
-    const eventList = $('#eventList');
-    const currentEventLabel = $('#currentEventLabel');
-
+    /* EVENTS */
+    var eventList=document.getElementById('eventList');
+    var currentEventLabel=document.getElementById('currentEventLabel');
     function renderEvents(){
+      if(!eventList) return;
       eventList.innerHTML='';
-      const events = state.events.slice().sort((a,b)=> (a.dateFrom||'').localeCompare(b.dateFrom||''));
-      if(events.length===0){ eventList.append(el('div',{class:'muted'},'Nema događaja. Dodaj prvi iznad.')); return; }
-      for(const ev of events){
-        const hrs=(ev.shifts||[]).reduce((s,x)=>s+(x.hours||0),0);
-        const amt=(ev.shifts||[]).reduce((s,x)=>s+(x.amount||0),0);
-        const isSel = ev.id===state.selectedEventId;
-        eventList.append(
-          el('div',{class:'item'},
-            el('div',{},
-              el('div',{}, ev.name||'Bez naziva'),
-              el('div',{class:'muted'}, formatRange(ev) || '—'),
-              el('div',{class:'muted'}, `Odgovorno: ${ev.responsible||''}`)
-            ),
-            el('div',{class:'row'},
-              el('span',{class:'chip'}, `${(ev.shifts||[]).length} smena`),
-              el('span',{class:'chip'}, `${hrs.toFixed(2)} h`),
-              el('span',{class:'chip'}, `${moneyFmt(amt)} RSD`),
-              el('button',{class:'ghost',onclick:()=>{ state.selectedEventId=ev.id; saveRaw(); renderAll(); }}, isSel?'Izabrano':'Otvori'),
-              el('button',{class:'ghost',onclick:()=>delEvent(ev.id)}, 'Obriši')
+      var events = state.events.slice().sort(function(a,b){ return (a.dateFrom||'').localeCompare(b.dateFrom||''); });
+      if(events.length===0){ eventList.appendChild(el('div',{class:'muted'},'Nema događaja. Dodaj prvi iznad.')); return; }
+      for(var i=0;i<events.length;i++){
+        (function(ev){
+          var hrs=0, amt=0, k;
+          for(k=0;k<(ev.shifts||[]).length;k++){ hrs+=ev.shifts[k].hours||0; amt+=ev.shifts[k].amount||0; }
+          var isSel = ev.id===state.selectedEventId;
+          eventList.appendChild(
+            el('div',{class:'item'},
+              el('div',{}, el('div',{}, ev.name||'Bez naziva'),
+                el('div',{class:'muted'}, formatRange(ev) || '—'),
+                el('div',{class:'muted'}, 'Odgovorno: '+(ev.responsible||'')) ),
+              el('div',{class:'row'},
+                el('span',{class:'chip'}, String((ev.shifts||[]).length)+' smena'),
+                el('span',{class:'chip'}, hrs.toFixed(2)+' h'),
+                el('span',{class:'chip'}, moneyFmt(amt)+' RSD'),
+                el('button',{class:'ghost',onclick:function(){ state.selectedEventId=ev.id; saveRaw(); renderAll(); }}, isSel?'Izabrano':'Otvori'),
+                el('button',{class:'ghost',onclick:function(){ delEvent(ev.id); }}, 'Obriši')
+              )
             )
-          )
-        );
+          );
+        })(events[i]);
       }
     }
     function delEvent(id){
       if(!confirm('Obrisati događaj?')) return;
-      state.events = state.events.filter(e=>e.id!==id);
-      if(state.selectedEventId===id) state.selectedEventId = (state.events[0]?.id)||null;
+      state.events = state.events.filter(function(e){return e.id!==id;});
+      if(state.selectedEventId===id) state.selectedEventId = (state.events[0] && state.events[0].id) || null;
       saveRaw(); renderAll();
     }
-    document.getElementById('btnAddEvent').addEventListener('click', ()=>{
-      const name = ($('#evName').value||'').trim();
-      const df = $('#evDateFrom').value||'';
-      const dt = $('#evDateTo').value||'';
-      const resp = ($('#evResponsible').value||'').trim() || 'Zorica Mihajlović';
-      if(!name) return alert('Unesi naziv događaja.');
-      if(df && dt && df>dt) return alert('„Datum do“ ne može biti pre „Datum od“.');
-
-      const ev = { id: cryptoRandom(), name, dateFrom: df||'', dateTo: dt||'', responsible: resp, shifts:[] };
+    var btnAddEvent=document.getElementById('btnAddEvent');
+    if(btnAddEvent){ btnAddEvent.addEventListener('click', function(){
+      var name = (document.getElementById('evName').value||'').trim();
+      var df = (document.getElementById('evDateFrom').value||'');
+      var dt = (document.getElementById('evDateTo').value||'');
+      var resp = (document.getElementById('evResponsible').value||'').trim() || 'Zorica Mihajlović';
+      if(!name){ alert('Unesi naziv događaja.'); return; }
+      if(df && dt && df>dt){ alert('„Datum do“ ne može biti pre „Datum od“.'); return; }
+      var ev = { id: cryptoRandom(), name:name, dateFrom: df||'', dateTo: dt||'', responsible: resp, shifts:[] };
       state.events.push(ev); state.selectedEventId = ev.id;
-      $('#evName').value=''; $('#evDateFrom').value=''; $('#evDateTo').value=''; $('#evResponsible').value='';
+      document.getElementById('evName').value=''; document.getElementById('evDateFrom').value=''; document.getElementById('evDateTo').value=''; document.getElementById('evResponsible').value='';
       saveRaw(); renderAll(); updateEventSelect();
-    });
-    document.getElementById('btnClearEvents').addEventListener('click', ()=>{
+    });}
+    var btnClearEvents=document.getElementById('btnClearEvents');
+    if(btnClearEvents){ btnClearEvents.addEventListener('click', function(){
       if(!confirm('Obrisati SVE događaje i podatke?')) return;
       state.events=[]; state.selectedEventId=null; saveRaw(); renderAll(); updateEventSelect();
-    });
+    });}
 
-    /* ---------- STAFF ---------- */
-    const staffList = $('#staffList');
-    const staffSearch = $('#staffSearch');
+    /* STAFF */
+    var staffList=document.getElementById('staffList');
+    var staffSearch=document.getElementById('staffSearch');
     function renderStaff(){
+      if(!staffList) return;
       staffList.innerHTML='';
-      const q = (staffSearch.value||'').toLowerCase();
-      const items = state.staff
-        .slice()
-        .sort((a,b)=>a.name.localeCompare(b.name,'sr'))
-        .filter(s=> s.name.toLowerCase().includes(q));
-      if(items.length===0){ staffList.append(el('div',{class:'muted'}, 'Nema službenika. Dodaj iznad.')); return; }
-      items.forEach(s=>{
-        staffList.append(el('div',{class:'item'},
-          el('div',{}, el('div',{}, s.name), el('div',{class:'muted'}, s.role||'—')),
-          el('div',{class:'row'},
-            el('button',{class:'ghost',onclick:()=>editStaff(s.id)},'Uredi'),
-            el('button',{class:'ghost',onclick:()=>delStaff(s.id)},'Obriši')
-          )
-        ));
-      });
+      var q = (staffSearch && staffSearch.value ? staffSearch.value.toLowerCase() : '');
+      var items = state.staff.slice().sort(function(a,b){ return a.name.localeCompare(b.name,'sr'); })
+                    .filter(function(s){ return String(s.name||'').toLowerCase().indexOf(q)>-1; });
+      if(items.length===0){ staffList.appendChild(el('div',{class:'muted'}, 'Nema službenika. Dodaj iznad.')); return; }
+      for(var i=0;i<items.length;i++){
+        (function(s){
+          staffList.appendChild(el('div',{class:'item'},
+            el('div',{}, el('div',{}, s.name), el('div',{class:'muted'}, s.role||'—')),
+            el('div',{class:'row'},
+              el('button',{class:'ghost',onclick:function(){ editStaff(s.id); }},'Uredi'),
+              el('button',{class:'ghost',onclick:function(){ delStaff(s.id); }},'Obriši')
+            )
+          ));
+        })(items[i]);
+      }
     }
     function addStaff(){
-      const name = ($('#staffName').value||'').trim(); if(!name) return alert('Unesi ime i prezime.');
-      const role = ($('#staffDefaultRole').value||'').trim();
-      state.staff.push({id:cryptoRandom(), name, role});
-      $('#staffName').value=''; $('#staffDefaultRole').value='';
+      var name = (document.getElementById('staffName').value||'').trim();
+      if(!name){ alert('Unesi ime i prezime.'); return; }
+      var role = (document.getElementById('staffDefaultRole').value||'').trim();
+      state.staff.push({id:cryptoRandom(), name:name, role:role});
+      document.getElementById('staffName').value=''; document.getElementById('staffDefaultRole').value='';
       saveRaw(); renderStaff(); renderShiftFormSources();
     }
     function delStaff(id){
       if(!confirm('Obrisati službenika iz direktorijuma? Ovo ne menja postojeće smene.')) return;
-      state.staff = state.staff.filter(s=>s.id!==id);
+      state.staff = state.staff.filter(function(s){return s.id!==id;});
       saveRaw(); renderStaff(); renderShiftFormSources();
     }
     function editStaff(id){
-      const s = state.staff.find(x=>x.id===id); if(!s) return;
-      const nn = prompt('Ime i prezime:', s.name); if(nn===null) return;
-      const nr = prompt('Podrazumevana uloga (opciono):', s.role||''); if(nr===null) return;
+      var s = state.staff.filter(function(x){return x.id===id;})[0]; if(!s) return;
+      var nn = prompt('Ime i prezime:', s.name); if(nn===null) return;
+      var nr = prompt('Podrazumevana uloga (opciono):', s.role||''); if(nr===null) return;
       s.name=(nn||'').trim(); s.role=(nr||'').trim(); saveRaw(); renderStaff(); renderShiftFormSources();
     }
-    document.getElementById('btnAddStaff').addEventListener('click', addStaff);
-    staffSearch.addEventListener('input', renderStaff);
+    var btnAddStaff=document.getElementById('btnAddStaff'); if(btnAddStaff) btnAddStaff.addEventListener('click', addStaff);
+    if(staffSearch) staffSearch.addEventListener('input', renderStaff);
 
-    // Staff CSV
-    document.getElementById('btnExportStaff').addEventListener('click', ()=>{
-      const rows=[['Ime i prezime','Uloga']];
-      state.staff.forEach(s=> rows.push([s.name, s.role||'']));
-      const csv = rows.map(r=>r.map(x=>{ const t=(x??'').toString(); return t.includes(',')?'"'+t.replace(/"/g,'""')+'"':t; }).join(',')).join('\n');
+    var btnExportStaff=document.getElementById('btnExportStaff');
+    if(btnExportStaff){ btnExportStaff.addEventListener('click', function(){
+      var rows=[['Ime i prezime','Uloga']];
+      for(var i=0;i<state.staff.length;i++) rows.push([state.staff[i].name, state.staff[i].role||'']);
+      var csv = rows.map(function(r){ return r.map(function(x){ var t=(x==null?'':String(x)); return t.indexOf(',')>-1?('"'+t.replace(/"/g,'""')+'"'):t; }).join(','); }).join('\n');
       downloadBlob(csv, 'sluzbenici.csv', 'text/csv');
-    });
-    document.getElementById('btnImportStaff').addEventListener('click', ()=>{
-      const inp = document.createElement('input'); inp.type='file'; inp.accept='.csv,text/csv';
-      inp.onchange = (e)=>{
-        const f=e.target.files?.[0]; if(!f) return;
-        const r=new FileReader(); r.onload=()=>{
+    });}
+    var btnImportStaff=document.getElementById('btnImportStaff');
+    if(btnImportStaff){ btnImportStaff.addEventListener('click', function(){
+      var inp=document.createElement('input'); inp.type='file'; inp.accept='.csv,text/csv';
+      inp.onchange=function(e){
+        var f=e.target.files && e.target.files[0]; if(!f) return;
+        var r=new FileReader();
+        r.onload=function(){
           try{
-            const lines = String(r.result).split(/\r?\n/).filter(Boolean);
-            const start = lines[0].toLowerCase().includes('ime') ? 1 : 0;
-            for(let i=start;i<lines.length;i++){
-              const parts = lines[i].split(',').map(s=> s.replace(/^"|"$/g,'').replace(/""/g,'"').trim());
+            var lines=String(r.result).split(/\r?\n/).filter(function(x){return x.trim().length>0;});
+            var start = (lines[0]||'').toLowerCase().indexOf('ime')>-1 ? 1 : 0;
+            for(var i=start;i<lines.length;i++){
+              var parts = lines[i].split(',').map(function(s){ return s.replace(/^"|"$/g,'').replace(/""/g,'"').trim(); });
               if(!parts[0]) continue;
               state.staff.push({id:cryptoRandom(), name:parts[0], role:parts[1]||''});
             }
             saveRaw(); renderStaff(); renderShiftFormSources(); alert('Uvezeno.');
           }catch(err){ alert('Greška pri uvozu: '+err.message); }
-        }; r.readAsText(f);
+        };
+        r.readAsText(f);
       };
       inp.click();
-    });
+    });}
 
-    /* ---------- POSITIONS ---------- */
-    const posList = $('#posList');
+    /* POSITIONS */
+    var posList=document.getElementById('posList');
     function renderPositions(){
+      if(!posList) return;
       posList.innerHTML='';
-      const items = state.positions.slice().sort((a,b)=>a.name.localeCompare(b.name,'sr'));
-      if(items.length===0){ posList.append(el('div',{class:'muted'},'Nema pozicija. Dodaj iznad.')); return; }
-      items.forEach(p=>{
-        posList.append(el('div',{class:'item'},
-          el('div',{}, p.name),
-          el('div',{class:'row'},
-            el('button',{class:'ghost',onclick:()=>renamePos(p.id)},'Preimenuj'),
-            el('button',{class:'ghost',onclick:()=>delPos(p.id)},'Obriši')
-          )
-        ));
-      });
+      var items = state.positions.slice().sort(function(a,b){ return a.name.localeCompare(b.name,'sr'); });
+      if(items.length===0){ posList.appendChild(el('div',{class:'muted'},'Nema pozicija. Dodaj iznad.')); return; }
+      for(var i=0;i<items.length;i++){
+        (function(p){
+          posList.appendChild(el('div',{class:'item'},
+            el('div',{}, p.name),
+            el('div',{class:'row'},
+              el('button',{class:'ghost',onclick:function(){ renamePos(p.id); }},'Preimenuj'),
+              el('button',{class:'ghost',onclick:function(){ delPos(p.id); }},'Obriši')
+            )
+          ));
+        })(items[i]);
+      }
     }
-    function addPos(){ const name = ($('#posName').value||'').trim(); if(!name) return;
-      state.positions.push({id:cryptoRandom(), name}); $('#posName').value=''; saveRaw(); renderPositions(); renderShiftFormSources(); }
+    function addPos(){
+      var name = (document.getElementById('posName').value||'').trim(); if(!name) return;
+      state.positions.push({id:cryptoRandom(), name:name});
+      document.getElementById('posName').value=''; saveRaw(); renderPositions(); renderShiftFormSources();
+    }
     function delPos(id){
       if(!confirm('Obrisati poziciju? Postojeće smene će ostati bez dodeljene pozicije.')) return;
-      state.positions = state.positions.filter(p=>p.id!==id);
-      state.events.forEach(ev=> (ev.shifts||[]).forEach(s=>{ if(s.posId===id) s.posId=''; }));
+      state.positions = state.positions.filter(function(p){return p.id!==id;});
+      for(var evi=0;evi<state.events.length;evi++){
+        var ev=state.events[evi];
+        for(var si=0; si<(ev.shifts||[]).length; si++){ if(ev.shifts[si].posId===id) ev.shifts[si].posId=''; }
+      }
       saveRaw(); renderPositions(); renderShifts(); renderShiftFormSources();
     }
     function renamePos(id){
-      const p = state.positions.find(x=>x.id===id); if(!p) return;
-      const nn = prompt('Novi naziv pozicije:', p.name); if(!nn||!nn.trim()) return;
+      var p = state.positions.filter(function(x){return x.id===id;})[0]; if(!p) return;
+      var nn = prompt('Novi naziv pozicije:', p.name); if(!nn || !nn.trim()) return;
       p.name = nn.trim(); saveRaw(); renderPositions(); renderShiftFormSources(); renderShifts();
     }
-    document.getElementById('btnAddPos').addEventListener('click', addPos);
+    var btnAddPos=document.getElementById('btnAddPos'); if(btnAddPos) btnAddPos.addEventListener('click', addPos);
 
-    /* ---------- SHIFTS / PRISUSTVO ---------- */
-    const eventSelect = document.getElementById('eventSelect');
-    const eventInfo = document.getElementById('eventInfo');
-    const shiftBody = document.getElementById('shiftBody');
-    const staffSelect = document.getElementById('staffSelect');
-    const positionSelect = document.getElementById('guardPosition');
-    const shiftDate = document.getElementById('shiftDate');
+    /* SHIFTS */
+    var eventSelect=document.getElementById('eventSelect');
+    var eventInfo=document.getElementById('eventInfo');
+    var shiftBody=document.getElementById('shiftBody');
+    var staffSelect=document.getElementById('staffSelect');
+    var positionSelect=document.getElementById('guardPosition');
+    var shiftDate=document.getElementById('shiftDate');
 
     function renderEventInfoChip(){
-      const ev = state.events.find(e=>e.id===state.selectedEventId);
-      eventInfo.textContent = ev ? `${ev.name} • ${formatRange(ev)} • Odgovorno: ${ev.responsible||''}` : 'Nije izabran događaj';
+      var ev = state.events.filter(function(e){return e.id===state.selectedEventId;})[0];
+      if(eventInfo) eventInfo.textContent = ev ? (ev.name+' • '+formatRange(ev)+' • Odgovorno: '+(ev.responsible||'')) : 'Nije izabran događaj';
     }
     function updateEventSelect(){
+      if(!eventSelect) return;
       eventSelect.innerHTML='';
-      const opt = document.createElement('option');
-      opt.value=''; opt.textContent='— izaberi događaj —';
-      eventSelect.appendChild(opt);
-      state.events.slice().sort((a,b)=> (a.dateFrom||'').localeCompare(b.dateFrom||'')).forEach(ev=>{
-        const o = document.createElement('option');
-        o.value = ev.id; o.textContent = `${ev.name} (${formatRange(ev)})`;
-        eventSelect.appendChild(o);
-      });
+      var opt=document.createElement('option'); opt.value=''; opt.textContent='— izaberi događaj —'; eventSelect.appendChild(opt);
+      var events = state.events.slice().sort(function(a,b){ return (a.dateFrom||'').localeCompare(b.dateFrom||''); });
+      for(var i=0;i<events.length;i++){
+        var ev=events[i]; var o=document.createElement('option'); o.value=ev.id; o.textContent=ev.name+' ('+formatRange(ev)+')'; eventSelect.appendChild(o);
+      }
       eventSelect.value = state.selectedEventId || '';
       renderEventInfoChip();
     }
-    eventSelect.addEventListener('change', ()=>{
-      state.selectedEventId = eventSelect.value || null; saveRaw(); renderAll();
-    });
+    if(eventSelect){ eventSelect.addEventListener('change', function(){ state.selectedEventId = eventSelect.value || null; saveRaw(); renderAll(); }); }
 
     function renderShiftFormSources(){
-      // staff
-      staffSelect.innerHTML='';
-      if(state.staff.length===0){
-        staffSelect.append(el('option',{disabled:true},'Nema službenika – dodaj u tabu „Službenici“.'));
-      }else{
-        state.staff.slice().sort((a,b)=>a.name.localeCompare(b.name,'sr')).forEach(s=>{
-          staffSelect.append(el('option',{value:s.id}, s.name));
-        });
+      if(staffSelect){
+        staffSelect.innerHTML='';
+        if(state.staff.length===0){
+          var op=document.createElement('option'); op.disabled=true; op.textContent='Nema službenika – dodaj u tabu „Službenici“.';
+          staffSelect.appendChild(op);
+        }else{
+          var sitems = state.staff.slice().sort(function(a,b){ return a.name.localeCompare(b.name,'sr'); });
+          for(var i=0;i<sitems.length;i++){ var o=document.createElement('option'); o.value=sitems[i].id; o.textContent=sitems[i].name; staffSelect.appendChild(o); }
+        }
       }
-      // positions
-      positionSelect.innerHTML='<option value="">— odaberi poziciju —</option>';
-      state.positions.slice().sort((a,b)=>a.name.localeCompare(b.name,'sr')).forEach(p=>{
-        positionSelect.append(el('option',{value:p.id}, p.name));
-      });
-
-      // default datum u opsegu događaja
-      const ev = state.events.find(e=>e.id===state.selectedEventId);
-      shiftDate.value = ev ? (ev.dateFrom||'') : '';
+      if(positionSelect){
+        positionSelect.innerHTML='<option value="">— odaberi poziciju —</option>';
+        var pitems = state.positions.slice().sort(function(a,b){ return a.name.localeCompare(b.name,'sr'); });
+        for(var j=0;j<pitems.length;j++){ var po=document.createElement('option'); po.value=pitems[j].id; po.textContent=pitems[j].name; positionSelect.appendChild(po); }
+      }
+      var ev = state.events.filter(function(e){return e.id===state.selectedEventId;})[0];
+      if(shiftDate) shiftDate.value = ev ? (ev.dateFrom||'') : '';
     }
 
     function computeAmount(payType, rate, hours){
-      const r = Number(rate||0);
-      return payType==='flat' ? r : Math.max(0, (Number(hours||0) * r));
+      var r = Number(rate||0);
+      return (payType==='flat') ? r : Math.max(0, Number(hours||0)*r);
     }
 
     function renderShifts(){
+      if(!shiftBody) return;
       shiftBody.innerHTML='';
-      const ev = state.events.find(e=>e.id===state.selectedEventId);
+      var ev = state.events.filter(function(e){return e.id===state.selectedEventId;})[0];
       if(!ev){
-        currentEventLabel.textContent='nema izabranog događaja';
+        if(currentEventLabel) currentEventLabel.textContent='nema izabranog događaja';
         renderEventInfoChip();
-        shiftBody.append(el('tr',{}, el('td',{colspan:'12',class:'muted'},'Izaberi događaj u padajućoj listi iznad.')));
-        document.getElementById('summaryTotals').innerHTML='';
+        shiftBody.appendChild(el('tr',{}, el('td',{colspan:'12',class:'muted'},'Izaberi događaj u padajućoj listi iznad.')));
+        var st=document.getElementById('summaryTotals'); if(st) st.innerHTML='';
         return;
       }
-      currentEventLabel.textContent = `${ev.name} • ${formatRange(ev)}`;
+      if(currentEventLabel) currentEventLabel.textContent = ev.name+' • '+formatRange(ev);
       renderEventInfoChip();
 
-      (ev.shifts||[]).forEach(s=>{
+      var i;
+      for(i=0;i<(ev.shifts||[]).length;i++){
+        var s=ev.shifts[i];
         s.hours = hoursDiff(s.from, s.to);
         s.amount = computeAmount(s.payType, s.rate, s.hours);
-      });
+      }
 
-      const posMap = Object.fromEntries(state.positions.map(p=>[p.id,p.name]));
-      const rows = (ev.shifts||[]).slice().sort((a,b)=>{
-        const d=(a.date||'').localeCompare(b.date||''); if(d!==0) return d;
+      var posMap={}; for(i=0;i<state.positions.length;i++){ posMap[state.positions[i].id]=state.positions[i].name; }
+      var rows=(ev.shifts||[]).slice().sort(function(a,b){
+        var d=(a.date||'').localeCompare(b.date||''); if(d!==0) return d;
         return (a.from||'').localeCompare(b.from||'');
       });
-      if(rows.length===0) shiftBody.append(el('tr',{}, el('td',{colspan:'12',class:'muted'},'Nema smena. Dodaj iznad.')));
-      rows.forEach(s=>{
-        const tr = el('tr',{},
-          el('td',{'data-label':'Datum'}, s.date||''),
-          el('td',{'data-label':'Službenik'}, s.guard||''),
-          el('td',{'data-label':'Pozicija'}, posMap[s.posId]||'—'),
-          el('td',{'data-label':'Uloga'}, s.role||'—'),
-          el('td',{'data-label':'Od'}, s.from||''),
-          el('td',{'data-label':'Do'}, s.to||''),
-          el('td',{'data-label':'Sati'}, (s.hours||0).toFixed(2)),
-          el('td',{'data-label':'Plaćanje'}, s.payType==='flat'?'Dnevnica':'Po satu'),
-          el('td',{'data-label':'Iznos (RSD)'}, moneyFmt(s.amount||0)),
-          el('td',{'data-label':'Status'}, s.status||'Regularna'),
-          el('td',{'data-label':'Napomena'}, s.note||'—'),
-          (function(){ const td=el('td',{class:'actions no-print'});
-            td.append(
-              el('button',{class:'ghost small',onclick:()=>editShift(s.id)},'Uredi'),
-              el('button',{class:'ghost small',onclick:()=>delShift(s.id)},'Obriši')
-            ); return td; })()
-        );
-        shiftBody.append(tr);
-      });
-
+      if(rows.length===0) shiftBody.appendChild(el('tr',{}, el('td',{colspan:'12',class:'muted'},'Nema smena. Dodaj iznad.')));
+      for(i=0;i<rows.length;i++){
+        (function(s){
+          var tr=el('tr',{},
+            el('td',{'data-label':'Datum'}, s.date||''),
+            el('td',{'data-label':'Službenik'}, s.guard||''),
+            el('td',{'data-label':'Pozicija'}, posMap[s.posId]||'—'),
+            el('td',{'data-label':'Uloga'}, s.role||'—'),
+            el('td',{'data-label':'Od'}, s.from||''),
+            el('td',{'data-label':'Do'}, s.to||''),
+            el('td',{'data-label':'Sati'}, (s.hours||0).toFixed(2)),
+            el('td',{'data-label':'Plaćanje'}, s.payType==='flat'?'Dnevnica':'Po satu'),
+            el('td',{'data-label':'Iznos (RSD)'}, moneyFmt(s.amount||0)),
+            el('td',{'data-label':'Status'}, s.status||'Regularna'),
+            el('td',{'data-label':'Napomena'}, s.note||'—'),
+            (function(){ var td=el('td',{class:'actions no-print'});
+              td.appendChild(el('button',{class:'ghost small',onclick:function(){ editShift(s.id); }},'Uredi'));
+              td.appendChild(el('button',{class:'ghost small',onclick:function(){ delShift(s.id); }},'Obriši'));
+              return td; })()
+          );
+          shiftBody.appendChild(tr);
+        })(rows[i]);
+      }
       renderSummaries(ev);
     }
 
     function renderSummaries(ev){
-      const wrap = document.getElementById('summaryTotals'); wrap.innerHTML='';
+      var wrap=document.getElementById('summaryTotals'); if(!wrap) return;
+      wrap.innerHTML='';
 
-      // Po danu
-      const byDay = {};
-      (ev.shifts||[]).forEach(s=>{
-        const k = s.date||'—';
-        byDay[k] = byDay[k]||{hours:0, amount:0};
-        byDay[k].hours += (s.hours||0);
-        byDay[k].amount += (s.amount||0);
-      });
-      wrap.append(el('div',{class:'item'},
-        el('div',{}, el('div',{style:'font-weight:600'},'Zbir po danima')),
-        el('div',{}, Object.entries(byDay).sort(([a],[b])=>a.localeCompare(b)).map(([d,v])=>`${d}: ${v.hours.toFixed(2)} h • ${moneyFmt(v.amount)} RSD`).join(' | '))
-      ));
+      var byDay={}; var i;
+      for(i=0;i<(ev.shifts||[]).length;i++){
+        var s=ev.shifts[i]; var k=s.date||'—';
+        if(!byDay[k]) byDay[k]={hours:0,amount:0};
+        byDay[k].hours += s.hours||0; byDay[k].amount += s.amount||0;
+      }
+      var dayStr=[]; var days=Object.keys(byDay).sort();
+      for(i=0;i<days.length;i++){ var d=days[i]; dayStr.push(d+': '+byDay[d].hours.toFixed(2)+' h • '+moneyFmt(byDay[d].amount)+' RSD'); }
+      wrap.appendChild(el('div',{class:'item'}, el('div',{}, el('div',{style:'font-weight:600'},'Zbir po danima')), el('div',{}, dayStr.join(' | ')) ));
 
-      // Po službeniku
-      const byGuard = {};
-      (ev.shifts||[]).forEach(s=>{
-        const k = s.guard||'—';
-        byGuard[k] = byGuard[k]||{hours:0, amount:0};
-        byGuard[k].hours += (s.hours||0);
-        byGuard[k].amount += (s.amount||0);
-      });
-      wrap.append(el('div',{class:'item'},
-        el('div',{}, el('div',{style:'font-weight:600'},'Zbir po službeniku')),
-        el('div',{}, Object.entries(byGuard).sort(([a],[b])=>a.localeCompare(b,'sr')).map(([g,v])=>`${g}: ${v.hours.toFixed(2)} h • ${moneyFmt(v.amount)} RSD`).join(' | '))
-      ));
+      var byGuard={};
+      for(i=0;i<(ev.shifts||[]).length;i++){
+        s=ev.shifts[i]; var g=s.guard||'—'; if(!byGuard[g]) byGuard[g]={hours:0,amount:0};
+        byGuard[g].hours+=s.hours||0; byGuard[g].amount+=s.amount||0;
+      }
+      var guards=Object.keys(byGuard).sort(function(a,b){ return a.localeCompare(b,'sr'); });
+      var gStr=[]; for(i=0;i<guards.length;i++){ var gg=guards[i]; gStr.push(gg+': '+byGuard[gg].hours.toFixed(2)+' h • '+moneyFmt(byGuard[gg].amount)+' RSD'); }
+      wrap.appendChild(el('div',{class:'item'}, el('div',{}, el('div',{style:'font-weight:600'},'Zbir po službeniku')), el('div',{}, gStr.join(' | ')) ));
 
-      // Ukupno
-      const totalHours = (ev.shifts||[]).reduce((s,x)=>s+(x.hours||0),0);
-      const totalAmount = (ev.shifts||[]).reduce((s,x)=>s+(x.amount||0),0);
-      wrap.append(el('div',{class:'item'},
-        el('div',{}, el('div',{style:'font-weight:600'},'Ukupno za događaj')),
-        el('div',{}, `${totalHours.toFixed(2)} h • ${moneyFmt(totalAmount)} RSD`)
-      ));
+      var totalHours=0,totalAmount=0;
+      for(i=0;i<(ev.shifts||[]).length;i++){ totalHours+=ev.shifts[i].hours||0; totalAmount+=ev.shifts[i].amount||0; }
+      wrap.appendChild(el('div',{class:'item'}, el('div',{}, el('div',{style:'font-weight:600'},'Ukupno za događaj')), el('div',{}, totalHours.toFixed(2)+' h • '+moneyFmt(totalAmount)+' RSD') ));
     }
 
-    function addShiftBulk(fromDup=null){
-      const ev = state.events.find(e=>e.id===state.selectedEventId);
-      if(!ev) return alert('Izaberi događaj.');
-      const date = fromDup?.date ?? document.getElementById('shiftDate').value || ev.dateFrom || '';
-      const selectedStaffIds = Array.from(staffSelect.selectedOptions).map(o=>o.value);
-      if(!fromDup && selectedStaffIds.length===0) return alert('Izaberi bar jednog službenika (Ctrl/duži tap za više).');
+    function addShiftBulk(fromDup){
+      var ev = state.events.filter(function(e){return e.id===state.selectedEventId;})[0];
+      if(!ev){ alert('Izaberi događaj.'); return; }
+      var date = fromDup && fromDup.date ? fromDup.date : (shiftDate ? shiftDate.value : '') || ev.dateFrom || '';
+      var selectedStaffIds=[]; if(staffSelect){ var opts=staffSelect.selectedOptions||[]; for(var i=0;i<opts.length;i++) selectedStaffIds.push(opts[i].value); }
+      if(!fromDup && selectedStaffIds.length===0){ alert('Izaberi bar jednog službenika (Ctrl/duži tap za više).'); return; }
 
-      const role = fromDup?.role ?? (document.getElementById('guardRole').value||'').trim();
-      const posId = fromDup?.posId ?? (document.getElementById('guardPosition').value||'');
-      const from  = fromDup?.from  ?? (document.getElementById('timeFrom').value||'');
-      const to    = fromDup?.to    ?? (document.getElementById('timeTo').value||'');
-      const payType = fromDup?.payType ?? (document.getElementById('payType').value||'hourly');
-      const rate    = Number(fromDup?.rate ?? (document.getElementById('payRate').value||'0'));
-      const status= fromDup?.status?? (document.getElementById('shiftStatus').value||'Regularna');
-      const note  = fromDup?.note  ?? (document.getElementById('shiftNote').value||'');
+      var role = fromDup ? fromDup.role : ((document.getElementById('guardRole')||{}).value||'').trim();
+      var posId = fromDup ? fromDup.posId : ((document.getElementById('guardPosition')||{}).value||'');
+      var from  = fromDup ? fromDup.from  : ((document.getElementById('timeFrom')||{}).value||'');
+      var to    = fromDup ? fromDup.to    : ((document.getElementById('timeTo')||{}).value||'');
+      var payType = fromDup ? fromDup.payType : ((document.getElementById('payType')||{}).value||'hourly');
+      var rate    = Number( fromDup ? fromDup.rate : ((document.getElementById('payRate')||{}).value||'0') );
+      var status= fromDup ? fromDup.status : ((document.getElementById('shiftStatus')||{}).value||'Regularna');
+      var note  = fromDup ? fromDup.note   : ((document.getElementById('shiftNote')||{}).value||'');
 
-      if(!date) return alert('Unesi datum smene.');
-      if(!from || !to) return alert('Unesi vreme od–do.');
-      const h = hoursDiff(from,to);
-      const amount = computeAmount(payType, rate, h);
+      if(!date){ alert('Unesi datum smene.'); return; }
+      if(!from || !to){ alert('Unesi vreme od–do.'); return; }
+      var h = hoursDiff(from,to);
+      var amount = (payType==='flat') ? Number(rate||0) : Math.max(0, h*Number(rate||0));
 
-      const addOne = (guardName)=>{
+      function addOne(guardName){
         if(posId){
-          const overl = (ev.shifts||[]).some(s=> s.posId===posId && s.date===date && overlap(s.from,s.to,from,to));
+          var overl=false;
+          for(var i=0;i<(ev.shifts||[]).length;i++){
+            var s=ev.shifts[i];
+            if(s.posId===posId && s.date===date && overlap(s.from,s.to,from,to)){ overl=true; break; }
+          }
           if(overl && !confirm('Upozorenje: postoji preklapanje smena na istoj poziciji istog dana. Nastaviti?')) return;
         }
-        ev.shifts.push({ id:cryptoRandom(), date, guard:guardName, role, posId, from, to, hours:h, status, note, payType, rate, amount });
-      };
+        ev.shifts.push({ id:cryptoRandom(), date:date, guard:guardName, role:role, posId:posId, from:from, to:to, hours:h, status:status, note:note, payType:payType, rate:rate, amount:amount });
+      }
 
       if(fromDup){
         addOne(fromDup.guard);
       }else{
-        selectedStaffIds.forEach(id=>{
-          const st = state.staff.find(s=>s.id===id);
+        for(var i=0;i<selectedStaffIds.length;i++){
+          var st = state.staff.filter(function(x){return x.id===selectedStaffIds[i];})[0];
           addOne(st ? st.name : 'Nepoznat');
-        });
+        }
       }
       saveRaw(); renderShifts();
       if(!fromDup){
-        document.getElementById('shiftNote').value=''; document.getElementById('guardRole').value='';
+        var sn=document.getElementById('shiftNote'); if(sn) sn.value='';
+        var gr=document.getElementById('guardRole'); if(gr) gr.value='';
       }
     }
-    document.getElementById('btnAddShift').addEventListener('click', ()=>addShiftBulk());
-    document.getElementById('btnDupLast').addEventListener('click', ()=>{
-      const ev = state.events.find(e=>e.id===state.selectedEventId); if(!ev) return alert('Izaberi događaj.');
-      const last = (ev.shifts||[]).slice(-1)[0]; if(!last) return alert('Nema prethodne smene.');
+    
+    var btnAddShift=document.getElementById('btnAddShift'); if(btnAddShift) btnAddShift.addEventListener('click', function(){ addShiftBulk(null); });
+    var btnDupLast=document.getElementById('btnDupLast'); if(btnDupLast) btnDupLast.addEventListener('click', function(){
+      var ev = state.events.filter(function(e){return e.id===state.selectedEventId;})[0]; if(!ev){ alert('Izaberi događaj.'); return; }
+      var last = (ev.shifts||[]).length ? ev.shifts[ev.shifts.length-1] : null; if(!last){ alert('Nema prethodne smene.'); return; }
       addShiftBulk(last);
     });
 
     function delShift(id){
-      const ev = state.events.find(e=>e.id===state.selectedEventId); if(!ev) return;
-      ev.shifts = ev.shifts.filter(s=>s.id!==id); saveRaw(); renderShifts();
+      var ev = state.events.filter(function(e){return e.id===state.selectedEventId;})[0]; if(!ev) return;
+      ev.shifts = ev.shifts.filter(function(s){return s.id!==id;}); saveRaw(); renderShifts();
     }
     function editShift(id){
-      const ev = state.events.find(e=>e.id===state.selectedEventId); if(!ev) return;
-      const s = ev.shifts.find(x=>x.id===id); if(!s) return;
+      var ev = state.events.filter(function(e){return e.id===state.selectedEventId;})[0]; if(!ev) return;
+      var s = (ev.shifts||[]).filter(function(x){return x.id===id;})[0]; if(!s) return;
 
-      const nd=prompt('Datum (YYYY-MM-DD):', s.date); if(nd===null) return;
-      const ng=prompt('Službenik:', s.guard); if(ng===null) return;
-      const nr=prompt('Uloga (opciono):', s.role||''); if(nr===null) return;
-      const np=prompt('Pozicija (unesi tačan naziv, ili ostavi prazno):', (state.positions.find(p=>p.id===s.posId)?.name)||''); if(np===null) return;
-      let pid=''; if(np){ const found = state.positions.find(p=>p.name===np); if(found) pid=found.id; }
-      const nf=prompt('Od (hh:mm):', s.from); if(nf===null) return;
-      const nt=prompt('Do (hh:mm):', s.to); if(nt===null) return;
-      const npt=prompt('Plaćanje (hourly/flat):', s.payType||'hourly'); if(npt===null) return;
-      const nr8=prompt('Iznos (RSD):', String(s.rate||0)); if(nr8===null) return;
-      const ns=prompt('Status (Regularna/Zamena/Incident):', s.status||'Regularna'); if(ns===null) return;
-      const nn=prompt('Napomena:', s.note||''); if(nn===null) return;
+      var nd=prompt('Datum (YYYY-MM-DD):', s.date); if(nd===null) return;
+      var ng=prompt('Službenik:', s.guard); if(ng===null) return;
+      var nr=prompt('Uloga (opciono):', s.role||''); if(nr===null) return;
+      var np=prompt('Pozicija (unesi tačan naziv, ili ostavi prazno):', (state.positions.filter(function(p){return p.id===s.posId;})[0]||{}).name||''); if(np===null) return;
+      var pid=''; if(np){ var found = state.positions.filter(function(p){return p.name===np;})[0]; if(found) pid=found.id; }
+      var nf=prompt('Od (hh:mm):', s.from); if(nf===null) return;
+      var nt=prompt('Do (hh:mm):', s.to); if(nt===null) return;
+      var npt=prompt('Plaćanje (hourly/flat):', s.payType||'hourly'); if(npt===null) return;
+      var nr8=prompt('Iznos (RSD):', String(s.rate||0)); if(nr8===null) return;
+      var ns=prompt('Status (Regularna/Zamena/Incident):', s.status||'Regularna'); if(ns===null) return;
+      var nn=prompt('Napomena:', s.note||''); if(nn===null) return;
 
       s.date=(nd||'').trim(); s.guard=(ng||'').trim(); s.role=(nr||'').trim(); s.posId=pid;
       s.from=(nf||'').trim(); s.to=(nt||'').trim();
@@ -846,48 +875,56 @@
 
     /* Šabloni */
     function applyTemplatesUI(){
-      const map = Object.fromEntries((state.templates||defaultTemplates()).map(t=>[t.id,t]));
-      const t1 = map['t1'], t2 = map['t2'], t3 = map['t3'];
-      const b1=document.getElementById('tpl1'), b2=document.getElementById('tpl2'), b3=document.getElementById('tpl3');
-      if(t1&&b1){ b1.textContent=t1.label; b1.onclick=()=>{ document.getElementById('timeFrom').value=t1.from; document.getElementById('timeTo').value=t1.to; }; }
-      if(t2&&b2){ b2.textContent=t2.label; b2.onclick=()=>{ document.getElementById('timeFrom').value=t2.from; document.getElementById('timeTo').value=t2.to; }; }
-      if(t3&&b3){ b3.textContent=t3.label; b3.onclick=()=>{ document.getElementById('timeFrom').value=t3.from; document.getElementById('timeTo').value=t3.to; }; }
+      state.templates = state.templates && state.templates.length ? state.templates : defaultTemplates();
+      var map={}; for(var i=0;i<state.templates.length;i++){ map[state.templates[i].id]=state.templates[i]; }
+      var t1=map['t1'], t2=map['t2'], t3=map['t3'];
+      var b1=document.getElementById('tpl1'), b2=document.getElementById('tpl2'), b3=document.getElementById('tpl3');
+      if(b1 && t1){ b1.textContent=t1.label; b1.onclick=function(){ var tf=document.getElementById('timeFrom'); var tt=document.getElementById('timeTo'); if(tf) tf.value=t1.from; if(tt) tt.value=t1.to; }; }
+      if(b2 && t2){ b2.textContent=t2.label; b2.onclick=function(){ var tf=document.getElementById('timeFrom'); var tt=document.getElementById('timeTo'); if(tf) tf.value=t2.from; if(tt) tt.value=t2.to; }; }
+      if(b3 && t3){ b3.textContent=t3.label; b3.onclick=function(){ var tf=document.getElementById('timeFrom'); var tt=document.getElementById('timeTo'); if(tf) tf.value=t3.from; if(tt) tt.value=t3.to; }; }
     }
-    document.getElementById('btnEditTemplates').addEventListener('click', ()=>{
-      state.templates = state.templates || defaultTemplates();
-      const map = Object.fromEntries(state.templates.map(t=>[t.id,t]));
-      for(const k of ['t1','t2','t3']){
-        const t = map[k] || {id:k,label:'',from:'',to:''};
-        const nl = prompt(`Etiketa šablona (${k}):`, t.label || '');
+    var btnEditTemplates=document.getElementById('btnEditTemplates');
+    if(btnEditTemplates){ btnEditTemplates.addEventListener('click', function(){
+      state.templates = state.templates && state.templates.length ? state.templates : defaultTemplates();
+      var map={}; for(var i=0;i<state.templates.length;i++){ map[state.templates[i].id]=state.templates[i]; }
+      var keys=['t1','t2','t3'];
+      for(var k=0;k<keys.length;k++){
+        var id=keys[k]; var t = map[id] || {id:id,label:'',from:'',to:''};
+        var nl = prompt('Etiketa šablona ('+id+'): ', t.label || '');
         if(nl===null) continue;
-        const nf = prompt('Vreme OD (hh:mm):', t.from || '');
+        var nf = prompt('Vreme OD (hh:mm):', t.from || '');
         if(nf===null) continue;
-        const nt = prompt('Vreme DO (hh:mm):', t.to || '');
+        var nt = prompt('Vreme DO (hh:mm):', t.to || '');
         if(nt===null) continue;
-        const idx = state.templates.findIndex(x=>x.id===k);
-        const obj = {id:k,label:nl||`${nf}–${nt}`,from:nf||'',to:nt||''};
+        var obj={id:id,label:(nl || (nf+'–'+nt)),from:nf||'',to:nt||''};
+        var idx = -1; for(var ii=0;ii<state.templates.length;ii++) if(state.templates[ii].id===id){ idx=ii; break; }
         if(idx>=0) state.templates[idx]=obj; else state.templates.push(obj);
       }
       saveRaw(); applyTemplatesUI();
-    });
+    });}
 
-    /* Restore backup */
-    document.getElementById('restoreInput').addEventListener('change',(e)=>{
-      const f=e.target.files?.[0]; if(!f) return;
-      const r=new FileReader(); r.onload=()=>{
-        try{
-          const obj=JSON.parse(r.result);
-          if(!obj || !Array.isArray(obj.events) || !Array.isArray(obj.positions) || !Array.isArray(obj.staff)) throw new Error('Nevažeći fajl');
-          obj.templates = obj.templates || defaultTemplates();
-          state=obj; saveRaw(); renderAll(); updateEventSelect(); applyTemplatesUI(); alert('Backup učitan.');
-        }catch(err){ alert('Greška: '+err.message); }
-      }; r.readAsText(f);
-    });
+    /* Restore */
+    var restoreInput=document.getElementById('restoreInput');
+    if(restoreInput){
+      restoreInput.addEventListener('change', function(e){
+        var f=e.target.files && e.target.files[0]; if(!f) return;
+        var r=new FileReader();
+        r.onload=function(){
+          try{
+            var obj=JSON.parse(r.result);
+            if(!obj || !obj.events || !obj.positions || !obj.staff) throw new Error('Nevažeći fajl');
+            obj.templates = obj.templates && obj.templates.length ? obj.templates : defaultTemplates();
+            state=obj; saveRaw(); renderAll(); updateEventSelect(); applyTemplatesUI(); alert('Backup učitan.');
+          }catch(err){ alert('Greška: '+err.message); }
+        };
+        r.readAsText(f);
+      });
+    }
 
-    /* Renderi */
+    /* Render ALL */
     function renderAll(){
-      const ev = state.events.find(e=>e.id===state.selectedEventId);
-      currentEventLabel.textContent = ev ? `${ev.name} • ${formatRange(ev)}` : 'nema izabranog događaja';
+      var ev = state.events.filter(function(e){return e.id===state.selectedEventId;})[0];
+      if(currentEventLabel) currentEventLabel.textContent = ev ? (ev.name+' • '+formatRange(ev)) : 'nema izabranog događaja';
       renderEvents();
       renderPositions();
       renderStaff();
@@ -897,8 +934,8 @@
       renderShifts();
     }
 
-    // Init
     renderAll();
+  }); // DOMContentLoaded
   </script>
 </body>
 </html>
