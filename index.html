@@ -6,7 +6,7 @@
   <title>Zoka</title>
   <meta name="theme-color" content="#0f172a"/>
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="manifest" href="./manifest.webmanifest?v=7">
   <style>
     :root{ --bg:#0f172a; --panel:#111827; --muted:#94a3b8; --text:#e5e7eb;
       --accent:#22c55e; --accent2:#3b82f6; --warn:#f59e0b; --danger:#ef4444;
@@ -14,11 +14,17 @@
     *{box-sizing:border-box} html,body{height:100%}
     body{margin:0;background:linear-gradient(180deg,#0b1020,#0f172a 40%);color:var(--text);
       font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Arial;line-height:1.35}
+
     header{position:sticky;top:0;z-index:30;backdrop-filter:saturate(1.2) blur(8px);
       background:rgba(11,17,32,.9);border-bottom:1px solid var(--border);
-      padding:10px 12px;display:flex;align-items:center;gap:10px;justify-content:space-between}
+      padding:10px 12px}
+    .header-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
     .title{font-weight:700;letter-spacing:.2px;font-size:18px}
     .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .tabs{display:flex;gap:8px;align-items:center;margin-top:8px}
+    .tab{padding:8px 12px;border:1px solid var(--border);border-radius:999px;background:#0d1426;cursor:pointer;color:#cbd5e1}
+    .tab.active{background:#1f2937;color:#fff;border-color:#334155}
+
     button{border:1px solid var(--border);background:#121a2f;color:var(--text);padding:10px 12px;border-radius:10px;cursor:pointer}
     button.primary{background:linear-gradient(180deg,#2563eb,#1d4ed8);border-color:#1e40af}
     button.success{background:linear-gradient(180deg,#22c55e,#16a34a);border-color:#15803d}
@@ -45,9 +51,6 @@
     .badge{font-size:11px;padding:3px 7px;border-radius:999px;border:1px solid var(--border);color:var(--muted)}
     .warning{display:none;background:#3a0c0c;border-bottom:1px solid #7f1d1d;color:#fecaca;padding:10px 12px}
     .warning.show{display:flex;align-items:center;gap:10px;justify-content:space-between}
-    .tabs{display:flex;gap:8px;align-items:center}
-    .tab{padding:8px 12px;border:1px solid var(--border);border-radius:999px;background:#0d1426;cursor:pointer;color:#cbd5e1}
-    .tab.active{background:#1f2937;color:#fff;border-color:#334155}
 
     /* table desktop */
     table{width:100%;border-collapse:separate;border-spacing:0 6px}
@@ -69,12 +72,11 @@
       #shiftTable td::before{content:attr(data-label) " "; display:block; font-size:11px; color:var(--muted); margin-bottom:2px}
       #shiftTable td.actions{display:flex;gap:6px;justify-content:flex-end}
       input,select,textarea,button{font-size:16px}
-      .tabs{flex-wrap:wrap}
     }
 
     @media print{
       body{background:#fff;color:#000}
-      header, .footer, .no-print{display:none !important}
+      header, .no-print{display:none !Important}
       table{border-spacing:0;border-collapse:collapse}
       th,td{border:1px solid #999;padding:6px}
       tr{background:#fff}
@@ -83,20 +85,22 @@
 </head>
 <body>
   <header>
-    <div class="row">
+    <div class="header-top">
       <div class="title">Zoka</div>
-      <div class="tabs no-print">
-        <div class="tab active" data-tab="events">Događaji</div>
-        <div class="tab" data-tab="staff">Službenici</div>
-        <div class="tab" data-tab="positions">Pozicije</div>
+      <div class="row no-print" style="gap:6px">
+        <label class="chip" for="restoreInput" title="Učitaj backup">Učitaj backup<input id="restoreInput" type="file" accept="application/json" style="display:none"></label>
+        <button id="btnBackup" class="primary">Preuzmi backup</button>
+        <button id="btnShareBackup">Podeli backup</button>
+        <button id="btnPrint">PDF (Štampa)</button>
+        <button id="btnShareCSV">Podeli CSV</button>
       </div>
     </div>
-    <div class="row no-print" style="gap:6px">
-      <label class="chip" for="restoreInput" title="Učitaj backup">Učitaj backup<input id="restoreInput" type="file" accept="application/json" style="display:none"></label>
-      <button id="btnBackup" class="primary">Preuzmi backup</button>
-      <button id="btnShareBackup">Podeli backup</button>
-      <button id="btnPrint">PDF (Štampa)</button>
-      <button id="btnShareCSV">Podeli CSV</button>
+    <!-- TABOVI ODVOJENI OD IMENA -->
+    <div class="tabs no-print">
+      <div class="tab active" data-tab="events">Događaji</div>
+      <div class="tab" data-tab="staff">Službenici</div>
+      <div class="tab" data-tab="positions">Pozicije</div>
+      <div class="tab" data-tab="shifts">Prisustvo</div>
     </div>
   </header>
 
@@ -108,13 +112,16 @@
     </div>
   </div>
 
-  <!-- EVENTS -->
+  <!-- DOGAĐAJI -->
   <main id="view-events" class="grid">
     <section class="card no-print">
       <div class="section-title">Događaji</div>
       <div class="row split">
-        <input id="evName" placeholder="Naziv događaja (npr. Smena – 15.09)" />
-        <input id="evDate" type="date" />
+        <input id="evName" placeholder="Naziv događaja" />
+      </div>
+      <div class="row split">
+        <input id="evDateFrom" type="date" title="Datum od" />
+        <input id="evDateTo" type="date" title="Datum do" />
       </div>
       <div class="toolbar">
         <button class="success" id="btnAddEvent">Dodaj događaj</button>
@@ -122,11 +129,48 @@
       </div>
       <div class="list" id="eventList"></div>
     </section>
-
     <section class="card">
-      <div class="section-title">Smene / Prisustvo
-        <span id="currentEventLabel" class="badge">nema izabranog događaja</span>
+      <div class="section-title">
+        Trenutni događaj: <span id="currentEventLabel" class="badge">nema izabranog događaja</span>
       </div>
+      <p class="muted">Izaberi događaj u levoj listi. U tabu <b>Prisustvo</b> unosiš i gledaš smene.</p>
+    </section>
+  </main>
+
+  <!-- SLUŽBENICI -->
+  <main id="view-staff" class="grid" style="display:none">
+    <section class="card">
+      <div class="section-title">Službenici (direktorijum)</div>
+      <div class="row split">
+        <input id="staffName" placeholder="Ime i prezime" />
+        <input id="staffDefaultRole" placeholder="Podrazumevana uloga (opciono)" />
+      </div>
+      <div class="toolbar">
+        <button id="btnAddStaff" class="success">Dodaj službenika</button>
+        <button id="btnImportStaff" class="ghost">Uvezi CSV</button>
+        <button id="btnExportStaff" class="ghost">Izvezi CSV</button>
+      </div>
+      <input id="staffSearch" placeholder="Pretraga po imenu…" />
+      <div class="list" id="staffList"></div>
+    </section>
+  </main>
+
+  <!-- POZICIJE -->
+  <main id="view-positions" class="grid" style="display:none">
+    <section class="card">
+      <div class="section-title">Pozicije (globalne)</div>
+      <div class="row split">
+        <input id="posName" placeholder="Naziv pozicije (npr. Ulaz A, Bina, Parking 2)" />
+        <button id="btnAddPos" class="success">Dodaj poziciju</button>
+      </div>
+      <div id="posList" class="list"></div>
+    </section>
+  </main>
+
+  <!-- PRISUSTVO / SMENE -->
+  <main id="view-shifts" class="grid" style="display:none">
+    <section class="card">
+      <div class="section-title">Prisustvo (smene) • <span id="currentEventLabel2" class="badge">nema izabranog događaja</span></div>
 
       <div class="row split no-print">
         <select id="staffSelect" multiple size="3" title="Izaberi jednog ili više službenika"></select>
@@ -171,74 +215,46 @@
     </section>
   </main>
 
-  <!-- STAFF -->
-  <main id="view-staff" class="grid" style="display:none">
-    <section class="card">
-      <div class="section-title">Službenici (direktorijum)</div>
-      <div class="row split">
-        <input id="staffName" placeholder="Ime i prezime" />
-        <input id="staffDefaultRole" placeholder="Podrazumevana uloga (opciono)" />
-      </div>
-      <div class="toolbar">
-        <button id="btnAddStaff" class="success">Dodaj službenika</button>
-        <button id="btnImportStaff" class="ghost">Uvezi CSV</button>
-        <button id="btnExportStaff" class="ghost">Izvezi CSV</button>
-      </div>
-      <input id="staffSearch" placeholder="Pretraga po imenu…" />
-      <div class="list" id="staffList"></div>
-    </section>
-  </main>
-
-  <!-- POSITIONS -->
-  <main id="view-positions" class="grid" style="display:none">
-    <section class="card">
-      <div class="section-title">Pozicije (globalne)</div>
-      <div class="row split">
-        <input id="posName" placeholder="Naziv pozicije (npr. Ulaz A, Bina, Parking 2)" />
-        <button id="btnAddPos" class="success">Dodaj poziciju</button>
-      </div>
-      <div id="posList" class="list"></div>
-    </section>
-  </main>
-
-  <div class="footer no-print">Zoka v6 • Događaji / Službenici / Pozicije • Bulk dodavanje smena • PDF/CSV/Backup</div>
-
   <script>
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
+      window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js?v=7'));
     }
 
     /* ---------- storage & state ---------- */
-    const LS_KEY = 'zoka_v6';
+    const LS_KEY = 'zoka_v7';
     let storageOK = true;
     try{ localStorage.setItem('__zoka_test','ok'); storageOK = localStorage.getItem('__zoka_test') === 'ok'; localStorage.removeItem('__zoka_test'); }catch(e){ storageOK=false; }
     const warn = document.getElementById('warn'); if(!storageOK){ warn.classList.add('show'); }
 
+    function cryptoRandom(){ return Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4); }
     function loadRaw(){
       if(!storageOK) return { events:[], selectedEventId:null, staff:[], positions:[] };
       const raw = localStorage.getItem(LS_KEY);
       if(raw){ try{ return JSON.parse(raw); }catch{} }
-      // migrate from older (v5) if exists
-      const old = localStorage.getItem('zoka_v5');
-      if(old){ try{
-        const v5 = JSON.parse(old);
-        // v5 had positions per event; move them to global unique list
-        let positions = [];
-        const posMap = new Map();
+
+      // migracija iz v6 ako postoji
+      const old6 = localStorage.getItem('zoka_v6');
+      if(old6){ try{ const d = JSON.parse(old6); return { events:d.events||[], selectedEventId:d.selectedEventId||null, staff:d.staff||[], positions:d.positions||[] }; }catch{} }
+
+      // migracija iz v5: pozicije iz događaja -> globalne
+      const old5 = localStorage.getItem('zoka_v5');
+      if(old5){ try{
+        const v5 = JSON.parse(old5); let positions=[]; const map=new Map();
         (v5.events||[]).forEach(ev=>{
           (ev.positions||[]).forEach(p=>{
-            if(!posMap.has(p.name)){ const id = cryptoRandom(); posMap.set(p.name, id); positions.push({id, name:p.name}); }
-            // remap ev position ids
-            (ev.shifts||[]).forEach(s=>{ if(s.posId===p.id){ s.posId = posMap.get(p.name); } });
+            if(!map.has(p.name)){ const id = cryptoRandom(); map.set(p.name,id); positions.push({id,name:p.name}); }
+            (ev.shifts||[]).forEach(s=>{ if(s.posId===p.id) s.posId = map.get(p.name); });
           });
-          ev.positions = undefined; // remove per-event positions
+          // upgrejd: dodaj dateFrom/dateTo iz starog "date" ako postoji
+          if(ev.date){ ev.dateFrom = ev.date; ev.dateTo = ev.date; delete ev.date; }
+          ev.positions = undefined;
         });
-        return { events: v5.events||[], selectedEventId: v5.selectedId||null, staff:[], positions };
+        return { events:v5.events||[], selectedEventId:v5.selectedId||null, staff:[], positions };
       }catch{} }
+
       return { events:[], selectedEventId:null, staff:[], positions:[] };
     }
     function saveRaw(){ if(storageOK){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){} } }
-    function cryptoRandom(){ return Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4); }
 
     let state = loadRaw();
 
@@ -260,7 +276,8 @@
     const views = {
       events: $('#view-events'),
       staff: $('#view-staff'),
-      positions: $('#view-positions')
+      positions: $('#view-positions'),
+      shifts: $('#view-shifts')
     };
     tabs.forEach(t=>t.addEventListener('click', ()=>{
       tabs.forEach(x=>x.classList.remove('active'));
@@ -269,7 +286,7 @@
       Object.entries(views).forEach(([k,v])=> v.style.display = (k===id?'grid':'none'));
     }));
 
-    /* ---------- backup/share/pdf/csv ---------- */
+    /* ---------- backup, deljenje, csv, pdf ---------- */
     function downloadBlob(data, name, type){
       const blob=new Blob([data],{type}); const a=document.createElement('a');
       a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); a.remove();
@@ -277,7 +294,7 @@
     }
     function backup(){ downloadBlob(JSON.stringify(state,null,2), `zoka_backup_${new Date().toISOString().slice(0,10)}.json`, 'application/json'); }
     $('#btnBackup').addEventListener('click', backup);
-    $('#btnBackup2').addEventListener('click', backup);
+    $('#btnBackup2')?.addEventListener('click', backup);
     async function shareFile(name, blob, type){
       const file = new File([blob], name, {type});
       if(navigator.canShare && navigator.canShare({files:[file]})){
@@ -293,15 +310,15 @@
       await shareFile(`zoka_backup_${new Date().toISOString().slice(0,10)}.json`, blob, 'application/json');
     }
     $('#btnShareBackup').addEventListener('click', shareBackup);
-    $('#btnShareBackup2').addEventListener('click', shareBackup);
+    $('#btnShareBackup2')?.addEventListener('click', shareBackup);
 
     function makeCSV(){
       const ev = state.events.find(e=>e.id===state.selectedEventId);
       if(!ev) return {csv:'',name:'smene.csv'};
       const posMap = Object.fromEntries(state.positions.map(p=>[p.id,p.name]));
-      const rows=[['Događaj','Datum','Službenik','Uloga','Pozicija','Od','Do','Sati','Status','Napomena']];
+      const rows=[['Događaj','Period','Službenik','Uloga','Pozicija','Od','Do','Sati','Status','Napomena']];
       (ev.shifts||[]).forEach(s=>{
-        rows.push([ev.name, ev.date||'', s.guard||'', s.role||'', posMap[s.posId]||'', s.from||'', s.to||'', (s.hours||0).toFixed(2), s.status||'', s.note||'']);
+        rows.push([ev.name, formatRange(ev), s.guard||'', s.role||'', posMap[s.posId]||'', s.from||'', s.to||'', (s.hours||0).toFixed(2), s.status||'', s.note||'']);
       });
       const csv = rows.map(r=>r.map(x=>{ const s=(x??'').toString(); return (s.includes(';')||s.includes('"')||s.includes('\n')) ? '"'+s.replace(/"/g,'""')+'"' : s; }).join(';')).join('\n');
       const name = `smene_${(ev.name||'dogadjaj').replace(/\s+/g,'_')}.csv`;
@@ -326,7 +343,7 @@
       h2{margin:0 0 8px} .muted{color:#555} table{width:100%;border-collapse:collapse}
       th,td{border:1px solid #999;padding:6px;text-align:left;vertical-align:top;font-size:12px}
       .sign{margin-top:20px;display:flex;gap:32px} .box{border:1px solid #999;padding:12px;min-height:80px;flex:1}</style>`;
-      const head = `<h2>${ev.name||'Događaj'} – ${ev.date||''}</h2><div class="muted">Ukupno smena: ${(ev.shifts||[]).length} • Ukupno sati: ${((ev.shifts||[]).reduce((s,x)=>s+(x.hours||0),0)).toFixed(2)}</div>`;
+      const head = `<h2>${ev.name||'Događaj'} – ${formatRange(ev)}</h2><div class="muted">Ukupno smena: ${(ev.shifts||[]).length} • Ukupno sati: ${((ev.shifts||[]).reduce((s,x)=>s+(x.hours||0),0)).toFixed(2)}</div>`;
       const tableHead = `<table><thead><tr><th>#</th><th>Službenik</th><th>Uloga</th><th>Pozicija</th><th>Od</th><th>Do</th><th>Sati</th><th>Status</th><th>Napomena</th></tr></thead><tbody>`;
       const tableRows = rows.map((s,i)=>`<tr><td>${i+1}</td><td>${s.guard||''}</td><td>${s.role||''}</td><td>${posMap[s.posId]||''}</td><td>${s.from||''}</td><td>${s.to||''}</td><td>${(s.hours||0).toFixed(2)}</td><td>${s.status||''}</td><td>${s.note||''}</td></tr>`).join('');
       const foot = `</tbody></table><div class="sign"><div class="box">Šef smene:</div><div class="box">Nadzor/klijent:</div></div>`;
@@ -335,16 +352,17 @@
     }
     $('#btnPrint').addEventListener('click', printPDF);
 
-    /* ---------- events UI ---------- */
+    function formatDate(d){ return d ? new Date(d).toLocaleDateString('sr-Latn-RS') : ''; }
+    function formatRange(ev){ const a=formatDate(ev.dateFrom), b=formatDate(ev.dateTo); return (a&&b) ? (a===b?a:`${a} – ${b}`) : (a||b||''); }
+
+    /* ---------- EVENTS ---------- */
     const eventList = $('#eventList');
     const currentEventLabel = $('#currentEventLabel');
-    const shiftBody = $('#shiftBody');
-    const staffSelect = $('#staffSelect');
-    const positionSelect = $('#guardPosition');
+    const currentEventLabel2 = $('#currentEventLabel2');
 
     function renderEvents(){
       eventList.innerHTML='';
-      const events = state.events.slice().sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+      const events = state.events.slice().sort((a,b)=> (a.dateFrom||'').localeCompare(b.dateFrom||''));
       if(events.length===0){ eventList.append(el('div',{class:'muted'},'Nema događaja. Dodaj prvi iznad.')); return; }
       for(const ev of events){
         const hrs=(ev.shifts||[]).reduce((s,x)=>s+(x.hours||0),0);
@@ -353,7 +371,7 @@
           el('div',{class:'item'},
             el('div',{},
               el('div',{}, ev.name||'Bez naziva'),
-              el('div',{class:'muted'}, ev.date? new Date(ev.date).toLocaleDateString('sr-Latn-RS'):'—')
+              el('div',{class:'muted'}, formatRange(ev) || '—')
             ),
             el('div',{class:'row'},
               el('span',{class:'chip'}, `${(ev.shifts||[]).length} smena`),
@@ -373,10 +391,14 @@
     }
     $('#btnAddEvent').addEventListener('click', ()=>{
       const name = ($('#evName').value||'').trim();
-      const date = $('#evDate').value||'';
+      const df = $('#evDateFrom').value||'';
+      const dt = $('#evDateTo').value||'';
       if(!name) return alert('Unesi naziv događaja.');
-      const ev = { id: cryptoRandom(), name, date, shifts:[] };
-      state.events.push(ev); state.selectedEventId = ev.id; $('#evName').value=''; $('#evDate').value='';
+      if(df && dt && df>dt) return alert('„Datum do“ ne može biti pre „Datum od“.');
+
+      const ev = { id: cryptoRandom(), name, dateFrom: df||'', dateTo: dt||'', shifts:[] };
+      state.events.push(ev); state.selectedEventId = ev.id;
+      $('#evName').value=''; $('#evDateFrom').value=''; $('#evDateTo').value='';
       saveRaw(); renderAll();
     });
     $('#btnClearEvents').addEventListener('click', ()=>{
@@ -384,116 +406,7 @@
       state.events=[]; state.selectedEventId=null; saveRaw(); renderAll();
     });
 
-    function renderShiftFormSources(){
-      // staff
-      staffSelect.innerHTML='';
-      if(state.staff.length===0){
-        staffSelect.append(el('option',{disabled:true},'Nema službenika – dodaj u tabu „Službenici“.'));
-      }else{
-        state.staff.slice().sort((a,b)=>a.name.localeCompare(b.name,'sr')).forEach(s=>{
-          staffSelect.append(el('option',{value:s.id}, s.name));
-        });
-      }
-      // positions
-      positionSelect.innerHTML='<option value="">— odaberi poziciju —</option>';
-      state.positions.slice().sort((a,b)=>a.name.localeCompare(b.name,'sr')).forEach(p=>{
-        positionSelect.append(el('option',{value:p.id}, p.name));
-      });
-    }
-
-    function renderShifts(){
-      shiftBody.innerHTML='';
-      const ev = state.events.find(e=>e.id===state.selectedEventId);
-      if(!ev){ currentEventLabel.textContent='nema izabranog događaja'; return; }
-      currentEventLabel.textContent = `${ev.name} • ${ev.date? new Date(ev.date).toLocaleDateString('sr-Latn-RS'):''}`;
-      const posMap = Object.fromEntries(state.positions.map(p=>[p.id,p.name]));
-      const rows = (ev.shifts||[]).slice().sort((a,b)=> (a.from||'').localeCompare(b.from||''));
-      if(rows.length===0) shiftBody.append(el('tr',{}, el('td',{colspan:'9',class:'muted'},'Nema smena. Dodaj iznad.')));
-      rows.forEach(s=>{
-        const tr = el('tr',{},
-          el('td',{'data-label':'Službenik'}, s.guard||''),
-          el('td',{'data-label':'Pozicija'}, posMap[s.posId]||'—'),
-          el('td',{'data-label':'Uloga'}, s.role||'—'),
-          el('td',{'data-label':'Od'}, s.from||''),
-          el('td',{'data-label':'Do'}, s.to||''),
-          el('td',{'data-label':'Sati'}, (s.hours||0).toFixed(2)),
-          el('td',{'data-label':'Status'}, s.status||'Regularna'),
-          el('td',{'data-label':'Napomena'}, s.note||'—'),
-          (function(){ const td=el('td',{class:'actions no-print'});
-            td.append(
-              el('button',{class:'ghost small',onclick:()=>editShift(s.id)},'Uredi'),
-              el('button',{class:'ghost small',onclick:()=>delShift(s.id)},'Obriši')
-            ); return td; })()
-        );
-        shiftBody.append(tr);
-      });
-    }
-
-    function addShiftBulk(fromDup=null){
-      const ev = state.events.find(e=>e.id===state.selectedEventId);
-      if(!ev) return alert('Izaberi događaj.');
-      const selectedStaffIds = Array.from(staffSelect.selectedOptions).map(o=>o.value);
-      if(!fromDup && selectedStaffIds.length===0) return alert('Izaberi bar jednog službenika (Ctrl/duži tap za više).');
-
-      const role = fromDup?.role ?? ($('#guardRole').value||'').trim();
-      const posId = fromDup?.posId ?? ($('#guardPosition').value||'');
-      const from  = fromDup?.from  ?? ($('#timeFrom').value||'');
-      const to    = fromDup?.to    ?? ($('#timeTo').value||'');
-      const status= fromDup?.status?? ($('#shiftStatus').value||'Regularna');
-      const note  = fromDup?.note  ?? ($('#shiftNote').value||'');
-
-      if(!from || !to) return alert('Unesi vreme od–do.');
-      const h = hoursDiff(from,to);
-
-      const addOne = (guardName)=>{
-        if(posId){
-          const overl = (ev.shifts||[]).some(s=> s.posId===posId && overlap(s.from,s.to,from,to));
-          if(overl && !confirm('Upozorenje: postoji preklapanje smena na istoj poziciji. Nastaviti?')) return;
-        }
-        const sh={ id:cryptoRandom(), guard:guardName, role, posId, from, to, hours:h, status, note };
-        ev.shifts.push(sh);
-      };
-
-      if(fromDup){
-        addOne(fromDup.guard);
-      }else{
-        selectedStaffIds.forEach(id=>{
-          const st = state.staff.find(s=>s.id===id);
-          addOne(st ? st.name : 'Nepoznat');
-        });
-      }
-      saveRaw(); renderShifts();
-
-      if(!fromDup){
-        // očisti polja osim šablona vremena
-        $('#shiftNote').value=''; $('#guardRole').value='';
-      }
-    }
-
-    $('#btnAddShift').addEventListener('click', ()=>addShiftBulk());
-    $('#btnDupLast').addEventListener('click', ()=>{
-      const ev = state.events.find(e=>e.id===state.selectedEventId); if(!ev) return alert('Izaberi događaj.');
-      const last = (ev.shifts||[]).slice(-1)[0]; if(!last) return alert('Nema prethodne smene.');
-      addShiftBulk(last);
-    });
-    function delShift(id){
-      const ev = state.events.find(e=>e.id===state.selectedEventId); if(!ev) return;
-      ev.shifts = ev.shifts.filter(s=>s.id!==id); saveRaw(); renderShifts();
-    }
-    function editShift(id){
-      const ev = state.events.find(e=>e.id===state.selectedEventId); if(!ev) return;
-      const s = ev.shifts.find(x=>x.id===id); if(!s) return;
-      const ng=prompt('Službenik:', s.guard); if(ng===null) return;
-      const nr=prompt('Uloga (opciono):', s.role||''); if(nr===null) return;
-      const nf=prompt('Od (hh:mm):', s.from); if(nf===null) return;
-      const nt=prompt('Do (hh:mm):', s.to); if(nt===null) return;
-      const ns=prompt('Status (Regularna/Zamena/Incident):', s.status||'Regularna'); if(ns===null) return;
-      const nn=prompt('Napomena:', s.note||''); if(nn===null) return;
-      s.guard=(ng||'').trim(); s.role=(nr||'').trim(); s.from=(nf||'').trim(); s.to=(nt||'').trim(); s.status=(ns||'Regularna').trim(); s.note=(nn||'').trim();
-      s.hours=hoursDiff(s.from,s.to); saveRaw(); renderShifts();
-    }
-
-    /* ---------- staff UI ---------- */
+    /* ---------- STAFF ---------- */
     const staffList = $('#staffList');
     const staffSearch = $('#staffSearch');
     function renderStaff(){
@@ -562,7 +475,7 @@
       inp.click();
     });
 
-    /* ---------- positions UI (global) ---------- */
+    /* ---------- POSITIONS ---------- */
     const posList = $('#posList');
     function renderPositions(){
       posList.innerHTML='';
@@ -591,14 +504,137 @@
       const nn = prompt('Novi naziv pozicije:', p.name); if(!nn||!nn.trim()) return;
       p.name = nn.trim(); saveRaw(); renderPositions(); renderShiftFormSources(); renderShifts();
     }
-    $('#btnAddPos').addEventListener('click', addPos);
 
-    /* ---------- time templates ---------- */
-    $('#tpl1').addEventListener('click',()=>{ $('#timeFrom').value='07:00'; $('#timeTo').value='15:00'; });
-    $('#tpl2').addEventListener('click',()=>{ $('#timeFrom').value='15:00'; $('#timeTo').value='23:00'; });
-    $('#tpl3').addEventListener('click',()=>{ $('#timeFrom').value='23:00'; $('#timeTo').value='07:00'; });
+    /* ---------- SHIFTS / PRISUSTVO ---------- */
+    const shiftBody = $('#shiftBody');
+    const staffSelect = $('#staffSelect');
+    const positionSelect = $('#guardPosition');
 
-    /* ---------- restore ---------- */
+    function renderShiftFormSources(){
+      // staff
+      staffSelect.innerHTML='';
+      if(state.staff.length===0){
+        staffSelect.append(el('option',{disabled:true},'Nema službenika – dodaj u tabu „Službenici“.'));
+      }else{
+        state.staff.slice().sort((a,b)=>a.name.localeCompare(b.name,'sr')).forEach(s=>{
+          staffSelect.append(el('option',{value:s.id}, s.name));
+        });
+      }
+      // positions
+      positionSelect.innerHTML='<option value="">— odaberi poziciju —</option>';
+      state.positions.slice().sort((a,b)=>a.name.localeCompare(b.name,'sr')).forEach(p=>{
+        positionSelect.append(el('option',{value:p.id}, p.name));
+      });
+    }
+
+    function renderShifts(){
+      shiftBody.innerHTML='';
+      const ev = state.events.find(e=>e.id===state.selectedEventId);
+      if(!ev){
+        $('#currentEventLabel').textContent='nema izabranog događaja';
+        $('#currentEventLabel2').textContent='nema izabranog događaja';
+        shiftBody.append(el('tr',{}, el('td',{colspan:'9',class:'muted'},'Izaberi događaj u tabu „Događaji“.')));
+        return;
+      }
+      $('#currentEventLabel').textContent = `${ev.name} • ${formatRange(ev)}`;
+      $('#currentEventLabel2').textContent = `${ev.name} • ${formatRange(ev)}`;
+
+      const posMap = Object.fromEntries(state.positions.map(p=>[p.id,p.name]));
+      const rows = (ev.shifts||[]).slice().sort((a,b)=> (a.from||'').localeCompare(b.from||''));
+      if(rows.length===0) shiftBody.append(el('tr',{}, el('td',{colspan:'9',class:'muted'},'Nema smena. Dodaj iznad.')));
+      rows.forEach(s=>{
+        const tr = el('tr',{},
+          el('td',{'data-label':'Službenik'}, s.guard||''),
+          el('td',{'data-label':'Pozicija'}, posMap[s.posId]||'—'),
+          el('td',{'data-label':'Uloga'}, s.role||'—'),
+          el('td',{'data-label':'Od'}, s.from||''),
+          el('td',{'data-label':'Do'}, s.to||''),
+          el('td',{'data-label':'Sati'}, (s.hours||0).toFixed(2)),
+          el('td',{'data-label':'Status'}, s.status||'Regularna'),
+          el('td',{'data-label':'Napomena'}, s.note||'—'),
+          (function(){ const td=el('td',{class:'actions no-print'});
+            td.append(
+              el('button',{class:'ghost small',onclick:()=>editShift(s.id)},'Uredi'),
+              el('button',{class:'ghost small',onclick:()=>delShift(s.id)},'Obriši')
+            ); return td; })()
+        );
+        shiftBody.append(tr);
+      });
+    }
+
+    function addShiftBulk(fromDup=null){
+      const ev = state.events.find(e=>e.id===state.selectedEventId);
+      if(!ev) return alert('Izaberi događaj.');
+      const selectedStaffIds = Array.from(staffSelect.selectedOptions).map(o=>o.value);
+      if(!fromDup && selectedStaffIds.length===0) return alert('Izaberi bar jednog službenika (Ctrl/duži tap za više).');
+
+      const role = fromDup?.role ?? ($('#guardRole').value||'').trim();
+      const posId = fromDup?.posId ?? ($('#guardPosition').value||'');
+      const from  = fromDup?.from  ?? ($('#timeFrom').value||'');
+      const to    = fromDup?.to    ?? ($('#timeTo').value||'');
+      const status= fromDup?.status?? ($('#shiftStatus').value||'Regularna');
+      const note  = fromDup?.note  ?? ($('#shiftNote').value||'');
+
+      if(!from || !to) return alert('Unesi vreme od–do.');
+      const h = hoursDiff(from,to);
+
+      const addOne = (guardName)=>{
+        if(posId){
+          const overl = (ev.shifts||[]).some(s=> s.posId===posId && overlap(s.from,s.to,from,to));
+          if(overl && !confirm('Upozorenje: postoji preklapanje smena na istoj poziciji. Nastaviti?')) return;
+        }
+        ev.shifts.push({ id:cryptoRandom(), guard:guardName, role, posId, from, to, hours:h, status, note });
+      };
+
+      if(fromDup){
+        addOne(fromDup.guard);
+      }else{
+        selectedStaffIds.forEach(id=>{
+          const st = state.staff.find(s=>s.id===id);
+          addOne(st ? st.name : 'Nepoznat');
+        });
+      }
+      saveRaw(); renderShifts();
+      if(!fromDup){ $('#shiftNote').value=''; $('#guardRole').value=''; }
+    }
+    $('#btnAddShift').addEventListener('click', ()=>addShiftBulk());
+    $('#btnDupLast').addEventListener('click', ()=>{
+      const ev = state.events.find(e=>e.id===state.selectedEventId); if(!ev) return alert('Izaberi događaj.');
+      const last = (ev.shifts||[]).slice(-1)[0]; if(!last) return alert('Nema prethodne smene.');
+      addShiftBulk(last);
+    });
+    function delShift(id){
+      const ev = state.events.find(e=>e.id===state.selectedEventId); if(!ev) return;
+      ev.shifts = ev.shifts.filter(s=>s.id!==id); saveRaw(); renderShifts();
+    }
+    function editShift(id){
+      const ev = state.events.find(e=>e.id===state.selectedEventId); if(!ev) return;
+      const s = ev.shifts.find(x=>x.id===id); if(!s) return;
+      const ng=prompt('Službenik:', s.guard); if(ng===null) return;
+      const nr=prompt('Uloga (opciono):', s.role||''); if(nr===null) return;
+      const nf=prompt('Od (hh:mm):', s.from); if(nf===null) return;
+      const nt=prompt('Do (hh:mm):', s.to); if(nt===null) return;
+      const ns=prompt('Status (Regularna/Zamena/Incident):', s.status||'Regularna'); if(ns===null) return;
+      const nn=prompt('Napomena:', s.note||''); if(nn===null) return;
+      s.guard=(ng||'').trim(); s.role=(nr||'').trim(); s.from=(nf||'').trim(); s.to=(nt||'').trim(); s.status=(ns||'Regularna').trim(); s.note=(nn||'').trim();
+      s.hours=hoursDiff(s.from,s.to); saveRaw(); renderShifts();
+    }
+
+    /* ---------- zajedničko ---------- */
+    function renderShiftFormSources(){ /* definisano iznad */ }
+    function renderAll(){
+      // labels
+      const ev = state.events.find(e=>e.id===state.selectedEventId);
+      $('#currentEventLabel').textContent = ev ? `${ev.name} • ${formatRange(ev)}` : 'nema izabranog događaja';
+      $('#currentEventLabel2').textContent = ev ? `${ev.name} • ${formatRange(ev)}` : 'nema izabranog događaja';
+      renderEvents();
+      renderPositions();
+      renderStaff();
+      renderShiftFormSources();
+      renderShifts();
+    }
+
+    // restore
     document.getElementById('restoreInput').addEventListener('change',(e)=>{
       const f=e.target.files?.[0]; if(!f) return;
       const r=new FileReader(); r.onload=()=>{
@@ -610,21 +646,14 @@
       }; r.readAsText(f);
     });
 
-    /* ---------- render all ---------- */
-    function renderAll(){
-      // label
-      const ev = state.events.find(e=>e.id===state.selectedEventId);
-      currentEventLabel.textContent = ev ? `${ev.name} • ${ev.date? new Date(ev.date).toLocaleDateString('sr-Latn-RS'):''}` : 'nema izabranog događaja';
-      // lists
-      renderEvents();
-      renderPositions();
-      renderStaff();
-      renderShiftFormSources();
-      renderShifts();
-    }
-
     // init
     renderAll();
+
+    // UI hooks
+    document.getElementById('btnAddPos').addEventListener('click', addPos);
+    document.getElementById('btnExportCSV'); // već povezan
+    document.getElementById('btnImportStaff'); // već povezan
+    document.getElementById('btnExportStaff'); // već povezan
   </script>
 </body>
 </html>
