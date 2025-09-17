@@ -6,7 +6,7 @@
   <title>Zoka</title>
   <meta name="theme-color" content="#0f172a"/>
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <link rel="manifest" href="./manifest.webmanifest?v=7">
+  <link rel="manifest" href="./manifest.webmanifest?v=8">
   <style>
     :root{ --bg:#0f172a; --panel:#111827; --muted:#94a3b8; --text:#e5e7eb;
       --accent:#22c55e; --accent2:#3b82f6; --warn:#f59e0b; --danger:#ef4444;
@@ -26,10 +26,10 @@
     .tab.active{background:#1f2937;color:#fff;border-color:#334155}
 
     button{border:1px solid var(--border);background:#121a2f;color:var(--text);padding:10px 12px;border-radius:10px;cursor:pointer}
-    button.primary{background:linear-gradient(180deg,#2563eb,#1d4ed8);border-color:#1e40af}
-    button.success{background:linear-gradient(180deg,#22c55e,#16a34a);border-color:#15803d}
-    button.warn{background:linear-gradient(180deg,#f59e0b,#d97706);border-color:#b45309}
-    button.danger{background:linear-gradient(180deg,#ef4444,#dc2626);border-color:#b91c1c}
+    button.primary{background:linear-gradient(180deg,var(--accent2), #1d4ed8);border-color:#1e40af}
+    button.success{background:linear-gradient(180deg,var(--accent), #16a34a);border-color:#15803d}
+    button.warn{background:linear-gradient(180deg,var(--warn), #b45309);border-color:#b45309}
+    button.danger{background:linear-gradient(180deg,var(--danger), #dc2626);border-color:#b91c1c}
     button.ghost{background:#0b122000}
     button:active{transform:translateY(1px)}
     input,select,textarea{background:#0b1220;color:var(--text);border:1px solid var(--border);
@@ -52,7 +52,7 @@
     .warning{display:none;background:#3a0c0c;border-bottom:1px solid #7f1d1d;color:#fecaca;padding:10px 12px}
     .warning.show{display:flex;align-items:center;gap:10px;justify-content:space-between}
 
-    /* table desktop */
+    /* tabela */
     table{width:100%;border-collapse:separate;border-spacing:0 6px}
     th,td{padding:8px 10px;border-bottom:1px solid #0f172a;vertical-align:top}
     th{color:#cbd5e1;text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.04em}
@@ -60,7 +60,7 @@
     tr td:first-child, tr th:first-child{border-top-left-radius:8px;border-bottom-left-radius:8px}
     tr td:last-child, tr th:last-child{border-top-right-radius:8px;border-bottom-right-radius:8px}
 
-    /* mobile stacked */
+    /* mobilno slaganje */
     @media(max-width: 768px){
       .grid{grid-template-columns: 1fr}
       .toolbar{position:sticky;bottom:0;z-index:20;background:linear-gradient(180deg,#0a0f1d,#0b1220);
@@ -81,6 +81,44 @@
       th,td{border:1px solid #999;padding:6px}
       tr{background:#fff}
     }
+
+    /* TEME */
+    :root[data-theme="dark"]{
+      --bg:#0f172a; --panel:#111827; --muted:#94a3b8; --text:#e5e7eb;
+      --accent:#22c55e; --accent2:#3b82f6; --warn:#f59e0b; --danger:#ef4444;
+      --chip:#1f2937; --card:#0b1220; --border:#1f2937;
+    }
+    :root[data-theme="light"]{
+      --bg:#f5f6fa; --panel:#ffffff; --muted:#5b6577; --text:#10121a;
+      --accent:#16a34a; --accent2:#2563eb; --warn:#b45309; --danger:#b91c1c;
+      --chip:#edf0f7; --card:#ffffff; --border:#e5e7eb;
+      body{ background:#f5f6fa; color:var(--text); }
+    }
+    :root[data-theme="midnight"]{
+      --bg:#0b1020; --panel:#0a0f1d; --muted:#8aa0bf; --text:#e8efff;
+      --accent:#7c3aed; --accent2:#3b82f6; --warn:#f59e0b; --danger:#ef4444;
+      --chip:#0f1a33; --card:#0b1228; --border:#142042;
+    }
+    :root[data-theme="forest"]{
+      --bg:#0d1512; --panel:#0f1f19; --muted:#9bb2a3; --text:#e9f5ee;
+      --accent:#22c55e; --accent2:#0ea5e9; --warn:#d97706; --danger:#dc2626;
+      --chip:#123122; --card:#0e2018; --border:#1a3a2a;
+    }
+    :root[data-theme="amber"]{
+      --bg:#1a1300; --panel:#1f1600; --muted:#e9d8a6; --text:#fff7cc;
+      --accent:#f59e0b; --accent2:#fbbf24; --warn:#f97316; --danger:#ef4444;
+      --chip:#2a2005; --card:#221a04; --border:#3a2b08;
+    }
+    :root[data-theme="corporate"]{
+      --bg:#0e1626; --panel:#10182a; --muted:#aab4c6; --text:#f1f5fb;
+      --accent:#2563eb; --accent2:#0ea5e9; --warn:#eab308; --danger:#ef4444;
+      --chip:#152038; --card:#0f1930; --border:#1c2a4a;
+    }
+    :root[data-theme="contrast"]{
+      --bg:#000; --panel:#000; --muted:#bbb; --text:#fff;
+      --accent:#00ff5a; --accent2:#00b3ff; --warn:#ffd000; --danger:#ff4040;
+      --chip:#111; --card:#000; --border:#333;
+    }
   </style>
 </head>
 <body>
@@ -94,8 +132,19 @@
         <button id="btnPrint">PDF (Štampa)</button>
         <button id="btnShareCSV">Podeli CSV</button>
       </div>
+      <div class="row no-print" style="gap:6px; margin-left:auto">
+        <label class="chip" for="themeSelect">Tema</label>
+        <select id="themeSelect" style="min-width:160px">
+          <option value="dark">Dark</option>
+          <option value="light">Light</option>
+          <option value="midnight">Midnight</option>
+          <option value="forest">Forest</option>
+          <option value="amber">Amber</option>
+          <option value="corporate">Corporate</option>
+          <option value="contrast">High Contrast</option>
+        </select>
+      </div>
     </div>
-    <!-- TABOVI ODVOJENI OD IMENA -->
     <div class="tabs no-print">
       <div class="tab active" data-tab="events">Događaji</div>
       <div class="tab" data-tab="staff">Službenici</div>
@@ -123,6 +172,9 @@
         <input id="evDateFrom" type="date" title="Datum od" />
         <input id="evDateTo" type="date" title="Datum do" />
       </div>
+      <div class="row split">
+        <input id="evResponsible" placeholder="Odgovorno lice" />
+      </div>
       <div class="toolbar">
         <button class="success" id="btnAddEvent">Dodaj događaj</button>
         <button id="btnClearEvents" class="danger">Obriši sve događaje</button>
@@ -133,7 +185,7 @@
       <div class="section-title">
         Trenutni događaj: <span id="currentEventLabel" class="badge">nema izabranog događaja</span>
       </div>
-      <p class="muted">Izaberi događaj u levoj listi. U tabu <b>Prisustvo</b> unosiš i gledaš smene.</p>
+      <p class="muted">Izaberi događaj u levoj listi. U tabu <b>Prisustvo</b> unosiš i gledaš smene, sate i isplate.</p>
     </section>
   </main>
 
@@ -170,17 +222,36 @@
   <!-- PRISUSTVO / SMENE -->
   <main id="view-shifts" class="grid" style="display:none">
     <section class="card">
-      <div class="section-title">Prisustvo (smene) • <span id="currentEventLabel2" class="badge">nema izabranog događaja</span></div>
+      <div class="section-title">Prisustvo (smene)</div>
 
+      <!-- Izbor događaja unutar Prisustva -->
       <div class="row split no-print">
+        <select id="eventSelect"></select>
+        <div class="chip" id="eventInfo">Nije izabran događaj</div>
+      </div>
+
+      <div class="row split no-print" style="margin-top:6px">
         <select id="staffSelect" multiple size="3" title="Izaberi jednog ili više službenika"></select>
         <input id="guardRole" placeholder="Uloga (opciono)" />
       </div>
       <div class="row split no-print">
+        <input id="shiftDate" type="date" />
         <select id="guardPosition"><option value="">— odaberi poziciju —</option></select>
+      </div>
+      <div class="row split no-print">
         <input id="timeFrom" type="time" />
         <input id="timeTo" type="time" />
       </div>
+
+      <!-- Plaćanje -->
+      <div class="row split no-print">
+        <select id="payType">
+          <option value="hourly">Plaćanje po satu</option>
+          <option value="flat">Dnevnica (po smeni)</option>
+        </select>
+        <input id="payRate" type="number" step="0.01" min="0" placeholder="Iznos (RSD)" />
+      </div>
+
       <div class="row split no-print">
         <select id="shiftStatus">
           <option value="Regularna">Regularna</option>
@@ -189,11 +260,13 @@
         </select>
         <input id="shiftNote" placeholder="Napomena (opciono)" />
       </div>
+
       <div class="toolbar no-print">
-        <div class="row">
+        <div class="row" style="gap:6px">
           <button id="tpl1" class="ghost small">07:00–15:00</button>
           <button id="tpl2" class="ghost small">15:00–23:00</button>
           <button id="tpl3" class="ghost small">23:00–07:00</button>
+          <button id="btnEditTemplates" class="ghost small">Uredi šablone</button>
         </div>
         <button id="btnDupLast" class="ghost small">Dupliciraj poslednju</button>
         <button id="btnAddShift" class="success">Dodaj smenu (za izabrane)</button>
@@ -204,57 +277,77 @@
         <table id="shiftTable">
           <thead>
             <tr>
-              <th>Službenik</th><th>Pozicija</th><th>Uloga</th>
+              <th>Datum</th><th>Službenik</th><th>Pozicija</th><th>Uloga</th>
               <th>Od</th><th>Do</th><th>Sati</th>
+              <th>Plaćanje</th><th>Iznos (RSD)</th>
               <th>Status</th><th>Napomena</th><th class="no-print"></th>
             </tr>
           </thead>
           <tbody id="shiftBody"></tbody>
         </table>
       </div>
+
+      <!-- Rezimei -->
+      <div class="card" style="margin-top:12px">
+        <div class="section-title">Rezimei</div>
+        <div id="summaryTotals" class="list"></div>
+      </div>
     </section>
   </main>
 
   <script>
+    /* SW */
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js?v=7'));
+      window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js?v=8'));
     }
 
+    /* Tema */
+    const THEME_KEY = 'zoka_theme';
+    const themeSelect = document.getElementById('themeSelect');
+    function applyTheme(name){
+      const root = document.documentElement;
+      root.setAttribute('data-theme', name);
+      try { localStorage.setItem(THEME_KEY, name); } catch(e){}
+      const meta = document.querySelector('meta[name="theme-color"]');
+      if(meta){
+        const bg = getComputedStyle(root).getPropertyValue('--bg')?.trim() || '#0f172a';
+        meta.setAttribute('content', bg);
+      }
+    }
+    function initTheme(){
+      let t=null; try{ t=localStorage.getItem(THEME_KEY);}catch(e){}
+      if(!t){ const prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches; t = prefersLight?'light':'dark'; }
+      applyTheme(t); themeSelect.value=t; themeSelect.addEventListener('change', e=>applyTheme(e.target.value));
+    }
+    initTheme();
+
     /* ---------- storage & state ---------- */
-    const LS_KEY = 'zoka_v7';
+    const LS_KEY = 'zoka_v8';
     let storageOK = true;
     try{ localStorage.setItem('__zoka_test','ok'); storageOK = localStorage.getItem('__zoka_test') === 'ok'; localStorage.removeItem('__zoka_test'); }catch(e){ storageOK=false; }
     const warn = document.getElementById('warn'); if(!storageOK){ warn.classList.add('show'); }
 
     function cryptoRandom(){ return Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4); }
     function loadRaw(){
-      if(!storageOK) return { events:[], selectedEventId:null, staff:[], positions:[] };
+      if(!storageOK) return { events:[], selectedEventId:null, staff:[], positions:[], templates:defaultTemplates() };
       const raw = localStorage.getItem(LS_KEY);
       if(raw){ try{ return JSON.parse(raw); }catch{} }
 
-      // migracija iz v6 ako postoji
-      const old6 = localStorage.getItem('zoka_v6');
-      if(old6){ try{ const d = JSON.parse(old6); return { events:d.events||[], selectedEventId:d.selectedEventId||null, staff:d.staff||[], positions:d.positions||[] }; }catch{} }
+      // migracije iz starijih verzija (po potrebi)
+      const old7 = localStorage.getItem('zoka_v7');
+      if(old7){ try{ const d=JSON.parse(old7); d.templates = d.templates||defaultTemplates(); return d; }catch{} }
 
-      // migracija iz v5: pozicije iz događaja -> globalne
-      const old5 = localStorage.getItem('zoka_v5');
-      if(old5){ try{
-        const v5 = JSON.parse(old5); let positions=[]; const map=new Map();
-        (v5.events||[]).forEach(ev=>{
-          (ev.positions||[]).forEach(p=>{
-            if(!map.has(p.name)){ const id = cryptoRandom(); map.set(p.name,id); positions.push({id,name:p.name}); }
-            (ev.shifts||[]).forEach(s=>{ if(s.posId===p.id) s.posId = map.get(p.name); });
-          });
-          // upgrejd: dodaj dateFrom/dateTo iz starog "date" ako postoji
-          if(ev.date){ ev.dateFrom = ev.date; ev.dateTo = ev.date; delete ev.date; }
-          ev.positions = undefined;
-        });
-        return { events:v5.events||[], selectedEventId:v5.selectedId||null, staff:[], positions };
-      }catch{} }
-
-      return { events:[], selectedEventId:null, staff:[], positions:[] };
+      return { events:[], selectedEventId:null, staff:[], positions:[], templates:defaultTemplates() };
     }
     function saveRaw(){ if(storageOK){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){} } }
+
+    function defaultTemplates(){
+      return [
+        { id:'t1', label:'07:00–15:00', from:'07:00', to:'15:00' },
+        { id:'t2', label:'15:00–23:00', from:'15:00', to:'23:00' },
+        { id:'t3', label:'23:00–07:00', from:'23:00', to:'07:00' }
+      ];
+    }
 
     let state = loadRaw();
 
@@ -270,6 +363,7 @@
     const minutes=(hhmm)=>{ const [h,m]=(hhmm||'').split(':').map(Number); if([h,m].some(x=>isNaN(x))) return null; return h*60+m; };
     const hoursDiff=(from,to)=>{ const a=minutes(from), b=minutes(to); if(a===null||b===null) return 0; let end=b; if(b<a) end+=1440; return Math.round(((end-a)/60)*100)/100; };
     const overlap=(from1,to1,from2,to2)=>{ const span=(f,t)=>{ let s=minutes(f), e=minutes(t); if(s===null||e===null) return null; if(e<s) e+=1440; return [s,e] }; const A=span(from1,to1), B=span(from2,to2); if(!A||!B) return false; return Math.max(A[0],B[0]) < Math.min(A[1],B[1]); };
+    const moneyFmt = v => (Number(v||0)).toLocaleString('sr-RS', {minimumFractionDigits:2, maximumFractionDigits:2});
 
     /* ---------- tabs ---------- */
     const tabs = document.querySelectorAll('.tab');
@@ -312,15 +406,29 @@
     $('#btnShareBackup').addEventListener('click', shareBackup);
     $('#btnShareBackup2')?.addEventListener('click', shareBackup);
 
+    function formatDate(d){ return d ? new Date(d).toLocaleDateString('sr-Latn-RS') : ''; }
+    function formatRange(ev){
+      const a=formatDate(ev.dateFrom), b=formatDate(ev.dateTo);
+      return (a&&b) ? (a===b?a:`${a} – ${b}`) : (a||b||'');
+    }
+
     function makeCSV(){
       const ev = state.events.find(e=>e.id===state.selectedEventId);
       if(!ev) return {csv:'',name:'smene.csv'};
       const posMap = Object.fromEntries(state.positions.map(p=>[p.id,p.name]));
-      const rows=[['Događaj','Period','Službenik','Uloga','Pozicija','Od','Do','Sati','Status','Napomena']];
+      const rows=[['Događaj','Period','Odgovorno lice','Datum smene','Službenik','Uloga','Pozicija','Od','Do','Sati','Plaćanje','Iznos (RSD)','Status','Napomena']];
       (ev.shifts||[]).forEach(s=>{
-        rows.push([ev.name, formatRange(ev), s.guard||'', s.role||'', posMap[s.posId]||'', s.from||'', s.to||'', (s.hours||0).toFixed(2), s.status||'', s.note||'']);
+        rows.push([
+          ev.name, formatRange(ev), ev.responsible||'',
+          s.date||'', s.guard||'', s.role||'', posMap[s.posId]||'',
+          s.from||'', s.to||'', (s.hours||0).toFixed(2),
+          s.payType==='flat'?'Dnevnica':'Po satu',
+          (s.amount||0).toFixed(2), s.status||'', s.note||''
+        ]);
       });
-      const csv = rows.map(r=>r.map(x=>{ const s=(x??'').toString(); return (s.includes(';')||s.includes('"')||s.includes('\n')) ? '"'+s.replace(/"/g,'""')+'"' : s; }).join(';')).join('\n');
+      const csv = rows.map(r=>r.map(x=>{
+        const s=(x??'').toString(); return (s.includes(';')||s.includes('"')||s.includes('\n')) ? '"'+s.replace(/"/g,'""')+'"' : s;
+      }).join(';')).join('\n');
       const name = `smene_${(ev.name||'dogadjaj').replace(/\s+/g,'_')}.csv`;
       return {csv,name};
     }
@@ -337,28 +445,41 @@
       const ev = state.events.find(e=>e.id===state.selectedEventId);
       if(!ev) return alert('Izaberi događaj.');
       const posMap = Object.fromEntries(state.positions.map(p=>[p.id,p.name]));
-      const rows=(ev.shifts||[]).slice().sort((a,b)=> (a.from||'').localeCompare(b.from||''));
+      const rows=(ev.shifts||[]).slice().sort((a,b)=>{
+        const d=(a.date||'').localeCompare(b.date||''); if(d!==0) return d;
+        return (a.from||'').localeCompare(b.from||'');
+      });
+      const totalHours = rows.reduce((s,x)=>s+(x.hours||0),0);
+      const totalAmount = rows.reduce((s,x)=>s+(x.amount||0),0);
       const win = window.open('', '_blank');
       const css = `<style>body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;padding:16px;color:#000;}
       h2{margin:0 0 8px} .muted{color:#555} table{width:100%;border-collapse:collapse}
       th,td{border:1px solid #999;padding:6px;text-align:left;vertical-align:top;font-size:12px}
-      .sign{margin-top:20px;display:flex;gap:32px} .box{border:1px solid #999;padding:12px;min-height:80px;flex:1}</style>`;
-      const head = `<h2>${ev.name||'Događaj'} – ${formatRange(ev)}</h2><div class="muted">Ukupno smena: ${(ev.shifts||[]).length} • Ukupno sati: ${((ev.shifts||[]).reduce((s,x)=>s+(x.hours||0),0)).toFixed(2)}</div>`;
-      const tableHead = `<table><thead><tr><th>#</th><th>Službenik</th><th>Uloga</th><th>Pozicija</th><th>Od</th><th>Do</th><th>Sati</th><th>Status</th><th>Napomena</th></tr></thead><tbody>`;
-      const tableRows = rows.map((s,i)=>`<tr><td>${i+1}</td><td>${s.guard||''}</td><td>${s.role||''}</td><td>${posMap[s.posId]||''}</td><td>${s.from||''}</td><td>${s.to||''}</td><td>${(s.hours||0).toFixed(2)}</td><td>${s.status||''}</td><td>${s.note||''}</td></tr>`).join('');
-      const foot = `</tbody></table><div class="sign"><div class="box">Šef smene:</div><div class="box">Nadzor/klijent:</div></div>`;
+      .sign{margin-top:20px;display:flex;gap:32px} .box{border:1px solid #999;padding:12px;min-height:80px;flex:1}
+      .sum{margin-top:12px}</style>`;
+      const head = `<h2>${ev.name||'Događaj'} – ${formatRange(ev)}</h2>
+        <div class="muted">Odgovorno lice: ${ev.responsible||''}</div>
+        <div class="sum"><b>Ukupno sati:</b> ${totalHours.toFixed(2)} • <b>Ukupan iznos:</b> ${moneyFmt(totalAmount)} RSD</div>`;
+      const tableHead = `<table><thead><tr>
+        <th>#</th><th>Datum</th><th>Službenik</th><th>Uloga</th><th>Pozicija</th><th>Od</th><th>Do</th><th>Sati</th><th>Plaćanje</th><th>Iznos</th><th>Status</th><th>Napomena</th>
+        </tr></thead><tbody>`;
+      const tableRows = rows.map((s,i)=>`<tr>
+        <td>${i+1}</td><td>${s.date||''}</td><td>${s.guard||''}</td><td>${s.role||''}</td>
+        <td>${posMap[s.posId]||''}</td><td>${s.from||''}</td><td>${s.to||''}</td>
+        <td>${(s.hours||0).toFixed(2)}</td><td>${s.payType==='flat'?'Dnevnica':'Po satu'}</td>
+        <td>${moneyFmt(s.amount||0)}</td><td>${s.status||''}</td><td>${s.note||''}</td></tr>`).join('');
+      const foot = `</tbody></table><div class="sign">
+        <div class="box">Šef smene:</div><div class="box">Nadzor/klijent:</div><div class="box">Odgovorno lice: ${ev.responsible||''}</div>
+        </div>`;
       win.document.write(`<html><head><meta charset="UTF-8"><title>Štampa – ${ev.name||''}</title>${css}</head><body>${head}${tableHead}${tableRows}${foot}</body></html>`);
       win.document.close(); win.focus(); win.onload = ()=> win.print();
     }
     $('#btnPrint').addEventListener('click', printPDF);
 
-    function formatDate(d){ return d ? new Date(d).toLocaleDateString('sr-Latn-RS') : ''; }
-    function formatRange(ev){ const a=formatDate(ev.dateFrom), b=formatDate(ev.dateTo); return (a&&b) ? (a===b?a:`${a} – ${b}`) : (a||b||''); }
-
     /* ---------- EVENTS ---------- */
     const eventList = $('#eventList');
+    const eventSelect = $('#eventSelect');
     const currentEventLabel = $('#currentEventLabel');
-    const currentEventLabel2 = $('#currentEventLabel2');
 
     function renderEvents(){
       eventList.innerHTML='';
@@ -366,16 +487,19 @@
       if(events.length===0){ eventList.append(el('div',{class:'muted'},'Nema događaja. Dodaj prvi iznad.')); return; }
       for(const ev of events){
         const hrs=(ev.shifts||[]).reduce((s,x)=>s+(x.hours||0),0);
+        const amt=(ev.shifts||[]).reduce((s,x)=>s+(x.amount||0),0);
         const isSel = ev.id===state.selectedEventId;
         eventList.append(
           el('div',{class:'item'},
             el('div',{},
               el('div',{}, ev.name||'Bez naziva'),
-              el('div',{class:'muted'}, formatRange(ev) || '—')
+              el('div',{class:'muted'}, formatRange(ev) || '—'),
+              el('div',{class:'muted'}, `Odgovorno: ${ev.responsible||''}`)
             ),
             el('div',{class:'row'},
               el('span',{class:'chip'}, `${(ev.shifts||[]).length} smena`),
               el('span',{class:'chip'}, `${hrs.toFixed(2)} h`),
+              el('span',{class:'chip'}, `${moneyFmt(amt)} RSD`),
               el('button',{class:'ghost',onclick:()=>{ state.selectedEventId=ev.id; saveRaw(); renderAll(); }}, isSel?'Izabrano':'Otvori'),
               el('button',{class:'ghost',onclick:()=>delEvent(ev.id)}, 'Obriši')
             )
@@ -393,13 +517,16 @@
       const name = ($('#evName').value||'').trim();
       const df = $('#evDateFrom').value||'';
       const dt = $('#evDateTo').value||'';
+      const resp = ($('#evResponsible').value||'').trim() || 'Zorica Mihajlović';
       if(!name) return alert('Unesi naziv događaja.');
       if(df && dt && df>dt) return alert('„Datum do“ ne može biti pre „Datum od“.');
 
-      const ev = { id: cryptoRandom(), name, dateFrom: df||'', dateTo: dt||'', shifts:[] };
+      const ev = { id: cryptoRandom(), name, dateFrom: df||'', dateTo: dt||'', responsible: resp, shifts:[] };
       state.events.push(ev); state.selectedEventId = ev.id;
-      $('#evName').value=''; $('#evDateFrom').value=''; $('#evDateTo').value='';
+      $('#evName').value=''; $('#evDateFrom').value=''; $('#evDateTo').value=''; $('#evResponsible').value='';
       saveRaw(); renderAll();
+      // auto set u Prisustvu
+      updateEventSelect();
     });
     $('#btnClearEvents').addEventListener('click', ()=>{
       if(!confirm('Obrisati SVE događaje i podatke?')) return;
@@ -509,6 +636,29 @@
     const shiftBody = $('#shiftBody');
     const staffSelect = $('#staffSelect');
     const positionSelect = $('#guardPosition');
+    const shiftDate = $('#shiftDate');
+    const eventInfo = $('#eventInfo');
+
+    function updateEventSelect(){
+      eventSelect.innerHTML='';
+      const opt = document.createElement('option');
+      opt.value=''; opt.textContent='— izaberi događaj —';
+      eventSelect.appendChild(opt);
+      state.events.slice().sort((a,b)=> (a.dateFrom||'').localeCompare(b.dateFrom||'')).forEach(ev=>{
+        const o = document.createElement('option');
+        o.value = ev.id; o.textContent = `${ev.name} (${formatRange(ev)})`;
+        eventSelect.appendChild(o);
+      });
+      eventSelect.value = state.selectedEventId || '';
+      renderEventInfoChip();
+    }
+    function renderEventInfoChip(){
+      const ev = state.events.find(e=>e.id===state.selectedEventId);
+      eventInfo.textContent = ev ? `${ev.name} • ${formatRange(ev)} • Odgovorno: ${ev.responsible||''}` : 'Nije izabran događaj';
+    }
+    eventSelect.addEventListener('change', ()=>{
+      state.selectedEventId = eventSelect.value || null; saveRaw(); renderAll();
+    });
 
     function renderShiftFormSources(){
       // staff
@@ -525,31 +675,58 @@
       state.positions.slice().sort((a,b)=>a.name.localeCompare(b.name,'sr')).forEach(p=>{
         positionSelect.append(el('option',{value:p.id}, p.name));
       });
+
+      // default datum u opsegu događaja
+      const ev = state.events.find(e=>e.id===state.selectedEventId);
+      if(ev){
+        shiftDate.value = ev.dateFrom || '';
+      }else{
+        shiftDate.value = '';
+      }
+    }
+
+    function computeAmount(payType, rate, hours){
+      const r = Number(rate||0);
+      if(payType==='flat') return r;
+      return Math.max(0, (Number(hours||0) * r));
     }
 
     function renderShifts(){
       shiftBody.innerHTML='';
       const ev = state.events.find(e=>e.id===state.selectedEventId);
       if(!ev){
-        $('#currentEventLabel').textContent='nema izabranog događaja';
-        $('#currentEventLabel2').textContent='nema izabranog događaja';
-        shiftBody.append(el('tr',{}, el('td',{colspan:'9',class:'muted'},'Izaberi događaj u tabu „Događaji“.')));
+        currentEventLabel.textContent='nema izabranog događaja';
+        renderEventInfoChip();
+        shiftBody.append(el('tr',{}, el('td',{colspan:'12',class:'muted'},'Izaberi događaj u padajućoj listi iznad.')));
+        $('#summaryTotals').innerHTML='';
         return;
       }
-      $('#currentEventLabel').textContent = `${ev.name} • ${formatRange(ev)}`;
-      $('#currentEventLabel2').textContent = `${ev.name} • ${formatRange(ev)}`;
+      currentEventLabel.textContent = `${ev.name} • ${formatRange(ev)}`;
+      renderEventInfoChip();
+
+      // Recompute hours & amount (safety)
+      (ev.shifts||[]).forEach(s=>{
+        s.hours = hoursDiff(s.from, s.to);
+        s.amount = computeAmount(s.payType, s.rate, s.hours);
+      });
 
       const posMap = Object.fromEntries(state.positions.map(p=>[p.id,p.name]));
-      const rows = (ev.shifts||[]).slice().sort((a,b)=> (a.from||'').localeCompare(b.from||''));
-      if(rows.length===0) shiftBody.append(el('tr',{}, el('td',{colspan:'9',class:'muted'},'Nema smena. Dodaj iznad.')));
+      const rows = (ev.shifts||[]).slice().sort((a,b)=>{
+        const d=(a.date||'').localeCompare(b.date||''); if(d!==0) return d;
+        return (a.from||'').localeCompare(b.from||'');
+      });
+      if(rows.length===0) shiftBody.append(el('tr',{}, el('td',{colspan:'12',class:'muted'},'Nema smena. Dodaj iznad.')));
       rows.forEach(s=>{
         const tr = el('tr',{},
+          el('td',{'data-label':'Datum'}, s.date||''),
           el('td',{'data-label':'Službenik'}, s.guard||''),
           el('td',{'data-label':'Pozicija'}, posMap[s.posId]||'—'),
           el('td',{'data-label':'Uloga'}, s.role||'—'),
           el('td',{'data-label':'Od'}, s.from||''),
           el('td',{'data-label':'Do'}, s.to||''),
           el('td',{'data-label':'Sati'}, (s.hours||0).toFixed(2)),
+          el('td',{'data-label':'Plaćanje'}, s.payType==='flat'?'Dnevnica':'Po satu'),
+          el('td',{'data-label':'Iznos (RSD)'}, moneyFmt(s.amount||0)),
           el('td',{'data-label':'Status'}, s.status||'Regularna'),
           el('td',{'data-label':'Napomena'}, s.note||'—'),
           (function(){ const td=el('td',{class:'actions no-print'});
@@ -560,11 +737,55 @@
         );
         shiftBody.append(tr);
       });
+
+      renderSummaries(ev);
+    }
+
+    function renderSummaries(ev){
+      const wrap = $('#summaryTotals'); wrap.innerHTML='';
+
+      // Po danu
+      const byDay = {};
+      (ev.shifts||[]).forEach(s=>{
+        const k = s.date||'—';
+        byDay[k] = byDay[k]||{hours:0, amount:0};
+        byDay[k].hours += (s.hours||0);
+        byDay[k].amount += (s.amount||0);
+      });
+      const dayCard = el('div',{class:'item'},
+        el('div',{}, el('div',{style:'font-weight:600'},'Zbir po danima')),
+        el('div',{}, Object.entries(byDay).sort(([a],[b])=>a.localeCompare(b)).map(([d,v])=>`${d}: ${v.hours.toFixed(2)} h • ${moneyFmt(v.amount)} RSD`).join(' | '))
+      );
+      wrap.append(dayCard);
+
+      // Po službeniku
+      const byGuard = {};
+      (ev.shifts||[]).forEach(s=>{
+        const k = s.guard||'—';
+        byGuard[k] = byGuard[k]||{hours:0, amount:0};
+        byGuard[k].hours += (s.hours||0);
+        byGuard[k].amount += (s.amount||0);
+      });
+      const guardCard = el('div',{class:'item'},
+        el('div',{}, el('div',{style:'font-weight:600'},'Zbir po službeniku')),
+        el('div',{}, Object.entries(byGuard).sort(([a],[b])=>a.localeCompare(b,'sr')).map(([g,v])=>`${g}: ${v.hours.toFixed(2)} h • ${moneyFmt(v.amount)} RSD`).join(' | '))
+      );
+      wrap.append(guardCard);
+
+      // Ukupno
+      const totalHours = (ev.shifts||[]).reduce((s,x)=>s+(x.hours||0),0);
+      const totalAmount = (ev.shifts||[]).reduce((s,x)=>s+(x.amount||0),0);
+      const totalCard = el('div',{class:'item'},
+        el('div',{}, el('div',{style:'font-weight:600'},'Ukupno za događaj')),
+        el('div',{}, `${totalHours.toFixed(2)} h • ${moneyFmt(totalAmount)} RSD`)
+      );
+      wrap.append(totalCard);
     }
 
     function addShiftBulk(fromDup=null){
       const ev = state.events.find(e=>e.id===state.selectedEventId);
       if(!ev) return alert('Izaberi događaj.');
+      const date = fromDup?.date ?? $('#shiftDate').value || ev.dateFrom || '';
       const selectedStaffIds = Array.from(staffSelect.selectedOptions).map(o=>o.value);
       if(!fromDup && selectedStaffIds.length===0) return alert('Izaberi bar jednog službenika (Ctrl/duži tap za više).');
 
@@ -572,18 +793,22 @@
       const posId = fromDup?.posId ?? ($('#guardPosition').value||'');
       const from  = fromDup?.from  ?? ($('#timeFrom').value||'');
       const to    = fromDup?.to    ?? ($('#timeTo').value||'');
+      const payType = fromDup?.payType ?? ($('#payType').value||'hourly');
+      const rate    = Number(fromDup?.rate ?? ($('#payRate').value||'0'));
       const status= fromDup?.status?? ($('#shiftStatus').value||'Regularna');
       const note  = fromDup?.note  ?? ($('#shiftNote').value||'');
 
+      if(!date) return alert('Unesi datum smene.');
       if(!from || !to) return alert('Unesi vreme od–do.');
       const h = hoursDiff(from,to);
+      const amount = computeAmount(payType, rate, h);
 
       const addOne = (guardName)=>{
         if(posId){
-          const overl = (ev.shifts||[]).some(s=> s.posId===posId && overlap(s.from,s.to,from,to));
-          if(overl && !confirm('Upozorenje: postoji preklapanje smena na istoj poziciji. Nastaviti?')) return;
+          const overl = (ev.shifts||[]).some(s=> s.posId===posId && s.date===date && overlap(s.from,s.to,from,to));
+          if(overl && !confirm('Upozorenje: postoji preklapanje smena na istoj poziciji istog dana. Nastaviti?')) return;
         }
-        ev.shifts.push({ id:cryptoRandom(), guard:guardName, role, posId, from, to, hours:h, status, note });
+        ev.shifts.push({ id:cryptoRandom(), date, guard:guardName, role, posId, from, to, hours:h, status, note, payType, rate, amount });
       };
 
       if(fromDup){
@@ -595,7 +820,9 @@
         });
       }
       saveRaw(); renderShifts();
-      if(!fromDup){ $('#shiftNote').value=''; $('#guardRole').value=''; }
+      if(!fromDup){
+        $('#shiftNote').value=''; $('#guardRole').value='';
+      }
     }
     $('#btnAddShift').addEventListener('click', ()=>addShiftBulk());
     $('#btnDupLast').addEventListener('click', ()=>{
@@ -603,6 +830,7 @@
       const last = (ev.shifts||[]).slice(-1)[0]; if(!last) return alert('Nema prethodne smene.');
       addShiftBulk(last);
     });
+
     function delShift(id){
       const ev = state.events.find(e=>e.id===state.selectedEventId); if(!ev) return;
       ev.shifts = ev.shifts.filter(s=>s.id!==id); saveRaw(); renderShifts();
@@ -610,50 +838,87 @@
     function editShift(id){
       const ev = state.events.find(e=>e.id===state.selectedEventId); if(!ev) return;
       const s = ev.shifts.find(x=>x.id===id); if(!s) return;
+
+      const nd=prompt('Datum (YYYY-MM-DD):', s.date); if(nd===null) return;
       const ng=prompt('Službenik:', s.guard); if(ng===null) return;
       const nr=prompt('Uloga (opciono):', s.role||''); if(nr===null) return;
+      const np=prompt('Pozicija (unesi tačan naziv, ili ostavi prazno):', (state.positions.find(p=>p.id===s.posId)?.name)||''); if(np===null) return;
+      let pid=''; if(np){ const found = state.positions.find(p=>p.name===np); if(found) pid=found.id; }
       const nf=prompt('Od (hh:mm):', s.from); if(nf===null) return;
       const nt=prompt('Do (hh:mm):', s.to); if(nt===null) return;
+      const npt=prompt('Plaćanje (hourly/flat):', s.payType||'hourly'); if(npt===null) return;
+      const nr8=prompt('Iznos (RSD):', String(s.rate||0)); if(nr8===null) return;
       const ns=prompt('Status (Regularna/Zamena/Incident):', s.status||'Regularna'); if(ns===null) return;
       const nn=prompt('Napomena:', s.note||''); if(nn===null) return;
-      s.guard=(ng||'').trim(); s.role=(nr||'').trim(); s.from=(nf||'').trim(); s.to=(nt||'').trim(); s.status=(ns||'Regularna').trim(); s.note=(nn||'').trim();
-      s.hours=hoursDiff(s.from,s.to); saveRaw(); renderShifts();
+
+      s.date=(nd||'').trim(); s.guard=(ng||'').trim(); s.role=(nr||'').trim(); s.posId=pid;
+      s.from=(nf||'').trim(); s.to=(nt||'').trim();
+      s.payType=(npt==='flat'?'flat':'hourly'); s.rate=Number(nr8||0);
+      s.status=(ns||'Regularna').trim(); s.note=(nn||'').trim();
+      s.hours=hoursDiff(s.from,s.to); s.amount=computeAmount(s.payType,s.rate,s.hours);
+      saveRaw(); renderShifts();
     }
 
-    /* ---------- zajedničko ---------- */
-    function renderShiftFormSources(){ /* definisano iznad */ }
-    function renderAll(){
-      // labels
-      const ev = state.events.find(e=>e.id===state.selectedEventId);
-      $('#currentEventLabel').textContent = ev ? `${ev.name} • ${formatRange(ev)}` : 'nema izabranog događaja';
-      $('#currentEventLabel2').textContent = ev ? `${ev.name} • ${formatRange(ev)}` : 'nema izabranog događaja';
-      renderEvents();
-      renderPositions();
-      renderStaff();
-      renderShiftFormSources();
-      renderShifts();
+    /* ---------- Šabloni (editable) ---------- */
+    const tplBtns = [{btn:'#tpl1', key:'t1'}, {btn:'#tpl2', key:'t2'}, {btn:'#tpl3', key:'t3'}];
+    function applyTemplatesUI(){
+      const map = Object.fromEntries(state.templates.map(t=>[t.id,t]));
+      tplBtns.forEach(({btn,key})=>{
+        const t = map[key]; const b=$(btn);
+        b.textContent = t ? t.label : '—';
+        b.onclick = ()=>{ if(t){ $('#timeFrom').value=t.from; $('#timeTo').value=t.to; } };
+      });
     }
+    $('#btnEditTemplates').addEventListener('click', ()=>{
+      const map = Object.fromEntries(state.templates.map(t=>[t.id,t]));
+      for(const k of ['t1','t2','t3']){
+        const t = map[k] || {id:k,label:'',from:'',to:''};
+        const nl = prompt(`Etiketa šablona (${k}):`, t.label || '');
+        if(nl===null) continue;
+        const nf = prompt('Vreme OD (hh:mm):', t.from || '');
+        if(nf===null) continue;
+        const nt = prompt('Vreme DO (hh:mm):', t.to || '');
+        if(nt===null) continue;
+        const idx = state.templates.findIndex(x=>x.id===k);
+        const obj = {id:k,label:nl||`${nf}–${nt}`,from:nf||'',to:nt||''};
+        if(idx>=0) state.templates[idx]=obj; else state.templates.push(obj);
+      }
+      saveRaw(); applyTemplatesUI();
+    });
 
-    // restore
+    /* ---------- restore ---------- */
     document.getElementById('restoreInput').addEventListener('change',(e)=>{
       const f=e.target.files?.[0]; if(!f) return;
       const r=new FileReader(); r.onload=()=>{
         try{
           const obj=JSON.parse(r.result);
           if(!obj || !Array.isArray(obj.events) || !Array.isArray(obj.positions) || !Array.isArray(obj.staff)) throw new Error('Nevažeći fajl');
-          state=obj; saveRaw(); renderAll(); alert('Backup učitan.');
+          // templates optional
+          obj.templates = obj.templates || defaultTemplates();
+          state=obj; saveRaw(); renderAll(); updateEventSelect(); applyTemplatesUI(); alert('Backup učitan.');
         }catch(err){ alert('Greška: '+err.message); }
       }; r.readAsText(f);
     });
 
+    /* ---------- render all ---------- */
+    function renderAll(){
+      const ev = state.events.find(e=>e.id===state.selectedEventId);
+      currentEventLabel.textContent = ev ? `${ev.name} • ${formatRange(ev)}` : 'nema izabranog događaja';
+      renderEvents();
+      renderPositions();
+      renderStaff();
+      renderShiftFormSources();
+      updateEventSelect();
+      applyTemplatesUI();
+      renderShifts();
+    }
+
     // init
     renderAll();
-
-    // UI hooks
+    
+    // Header actions already bound above
     document.getElementById('btnAddPos').addEventListener('click', addPos);
-    document.getElementById('btnExportCSV'); // već povezan
-    document.getElementById('btnImportStaff'); // već povezan
-    document.getElementById('btnExportStaff'); // već povezan
+    document.getElementById('btnAddStaff').addEventListener('click', addStaff);
   </script>
 </body>
 </html>
