@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="sr-Latn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Zoka</title>
+  <meta name="theme-color" content="#0f172a"/>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <style>
+    :root{ --bg:#0f172a; --panel:#111827; --muted:#94a3b8; --text:#e5e7eb;
+      --accent:#22c55e; --accent2:#3b82f6; --warn:#f59e0b; --danger:#ef4444;
+      --chip:#1f2937; --card:#0b1220; --border:#1f2937; }
+    *{box-sizing:border-box} html,body{height:100%}
+    body{margin:0;background:linear-gradient(180deg,#0b1020,#0f172a 40%);color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Arial;line-height:1.35}
+    header{position:sticky;top:0;z-index:20;backdrop-filter:saturate(1.2) blur(8px);
+      background:rgba(11,17,32,.9);border-bottom:1px solid var(--border);
+      padding:12px 16px;display:flex;align-items:center;gap:12px;justify-content:space-between}
+    .title{font-weight:700;letter-spacing:.2px;font-size:18px}
+    main{padding:14px;max-width:1200px;margin:0 auto}
+    .grid{display:grid;gap:12px}
+    @media(min-width:1024px){.grid{grid-template-columns: 1.05fr 1.6fr}}
+    .card{background:linear-gradient(180deg,#0d1426,#0a0f1d);border:1px solid var(--border);
+      border-radius:14px;padding:12px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+    .section-title{font-size:14px;color:var(--muted);margin:4px 0 8px;display:flex;align-items:center;gap:8px}
+    .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    input,select,textarea{background:#0b1220;color:var(--text);border:1px solid var(--border);
+      padding:12px;border-radius:10px;outline:none;width:100%}
+    textarea{min-height:44px}
+    input:focus,textarea:focus,select:focus{border-color:#334155;box-shadow:0 0 0 3px rgba(59,130,246,.2)}
+    button{border:1px solid var(--border);background:#121a2f;color:var(--text);padding:12px;border-radius:10px;cursor:pointer}
+    button.primary{background:linear-gradient(180deg,#2563eb,#1d4ed8);border-color:#1e40af}
+    button.success{background:linear-gradient(180deg,#22c55e,#16a34a);border-color:#15803d}
+    button.warn{background:linear-gradient(180deg,#f59e0b,#d97706);border-color:#b45309}
+    button.danger{background:linear-gradient(180deg,#ef4444,#dc2626);border-color:#b91c1c}
+    button.ghost{background:#0b122000}
+    button:active{transform:translateY(1px)}
+    .list{display:flex;flex-direction:column;gap:8px;max-height:50vh;overflow:auto;padding-right:6px}
+    .item{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px;
+      display:flex;align-items:center;gap:10px;justify-content:space-between}
+    .event-name{font-weight:600}
+    .muted{color:var(--muted);font-size:12px}
+    .chip{background:var(--chip);color:var(--text);padding:6px 8px;border-radius:999px;border:1px solid var(--border);font-size:12px}
+    .split{display:flex;gap:8px}.split>*{flex:1}
+    .toolbar{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+    .badge{font-size:11px;padding:3px 7px;border-radius:999px;border:1px solid var(--border);color:var(--muted)}
+    .right{margin-left:auto}.small{font-size:12px}
+    .footer{margin:10px 14px;color:var(--muted);font-size:12px;text-align:center}
+    .warning{display:none;background:#3a0c0c;border-bottom:1px solid #7f1d1d;color:#fecaca;padding:10px 12px}
+    .warning.show{display:flex;align-items:center;gap:10px;justify-content:space-between}
+    .warning .actions{display:flex;gap:8px;flex-wrap:wrap}
+
+    table{width:100%;border-collapse:separate;border-spacing:0 6px}
+    th,td{padding:8px 10px;border-bottom:1px solid #0f172a;vertical-align:top}
+    th{color:#cbd5e1;text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+    tr{background:#0d1426}
+    tr td:first-child, tr th:first-child{border-top-left-radius:8px;border-bottom-left-radius:8px}
+    tr td:last-child, tr th:last-child{border-top-right-radius:8px;border-bottom-right-radius:8px}
+
+    @media(max-width: 768px){
+      .grid{grid-template-columns: 1fr}
+      header .row button{padding:10px}
+      .toolbar{position:sticky;bottom:0;z-index:15;background:linear-gradient(180deg,#0a0f1d,#0b1220);
+        border-top:1px solid var(--border);padding:10px;border-radius:12px}
+      #shiftTable thead{display:none}
+      #shiftTable, #shiftTable tbody, #shiftTable tr, #shiftTable td{display:block;width:100%}
+      #shiftTable tr{border:1px solid var(--border);border-radius:12px;padding:10px;background:var(--card);margin-bottom:8px}
+      #shiftTable td{border:none;padding:4px 0}
+      #shiftTable td::before{content:attr(data-label) " "; display:block; font-size:11px; color:var(--muted); margin-bottom:2px}
+      #shiftTable td.actions{display:flex;gap:6px;justify-content:flex-end}
+      input,select,textarea,button{font-size:16px}
+    }
+
+    @media print{
+      body{background:#fff;color:#000}
+      header, .footer, .no-print{display:none !important}
+      table{border-spacing:0;border-collapse:collapse}
+      th,td{border:1px solid #999;padding:6px}
+      tr{background:#fff}
+    }
+  </style>
+</head>
+<body>
+  <header class="no-print">
+    <div><div class="title">Zoka</div></div>
+    <div class="row" style="gap:6px">
+      <label class="chip" for="restoreInput" title="Učitaj backup">Učitaj backup<input id="restoreInput" type="file" accept="application/json" style="display:none"></label>
+      <button id="btnBackup" class="primary">Preuzmi backup</button>
+      <button id="btnShareBackup">Podeli backup</button>
+      <button id="btnPrint">PDF (Štampa)</button>
+      <button id="btnShareCSV">Podeli CSV</button>
+      <button class="ghost" id="btnHelp" title="Uputstvo">?</button>
+    </div>
+  </header>
+
+  <div id="warn" class="warning">
+    <div><b>Upozorenje:</b> Pregledač ne čuva podatke trajno. Otvori u Chrome/Safari ili koristi PWA. U međuvremenu klikni „Preuzmi backup“ da sačuvaš .json.</div>
+    <div class="actions">
+      <button id="btnBackup2" class="danger">Preuzmi backup</button>
+      <button id="btnShareBackup2">Podeli backup</button>
+    </div>
+  </div>
+
+  <main class="grid">
+    <section class="card no-print">
+      <div class="section-title">Događaji</div>
+      <div class="row split">
+        <input id="evName" placeholder="Naziv događaja (npr. Smena – 15.09)" />
+        <input id="evDate" type="date" />
+      </div>
+      <div class="toolbar">
+        <button class="success" id="btnAddEvent">Dodaj događaj</button>
+        <button id="btnClearEvents" class="danger">Obriši sve događaje</button>
+      </div>
+      <div class="list" id="eventList"></div>
+
+      <hr style="border:none;border-top:1px solid var(--border);margin:12px 0">
+      <div class="section-title">Pozicije (tačke obezbeđenja)</div>
+      <div class="row split">
+        <input id="posName" placeholder="Naziv pozicije (npr. Ulaz A, Bina, Parking 2)" />
+        <button id="btnAddPos" class="success">Dodaj poziciju</button>
+      </div>
+      <div id="posList" class="list"></div>
+    </section>
+
+    <section class="card">
+      <div class="section-title">Smene / Prisustvo
+        <span id="currentEventLabel" class="badge">nema izabranog događaja</span>
+      </div>
+
+      <div class="kpis no-print">
+        <div class="kpi"><span class="v" id="kpiTotalShifts">0</span> smena</div>
+        <div class="kpi"><span class="v" id="kpiTotalHours">0</span> h ukupno</div>
+        <div class="kpi"><span class="v" id="kpiDistinctGuards">0</span> službenika</div>
+      </div>
+
+      <div class="row split no-print">
+        <input id="guardName" placeholder="Službenik (ime i prezime)" />
+        <input id="guardRole" placeholder="Uloga (npr. šef smene) – opciono" />
+      </div>
+      <div class="row split no-print">
+        <select id="guardPosition"><option value="">— odaberi poziciju —</option></select>
+        <input id="timeFrom" type="time" />
+        <input id="timeTo" type="time" />
+      </div>
+      <div class="row split no-print">
+        <select id="shiftStatus">
+          <option value="Regularna">Regularna</option>
+          <option value="Zamena">Zamena</option>
+          <option value="Incident">Incident</option>
+        </select>
+        <input id="shiftNote" placeholder="Napomena (opciono)" />
+      </div>
+      <div class="toolbar no-print">
+        <div class="template-btns">
+          <button id="tpl1" class="ghost small">07:00–15:00</button>
+          <button id="tpl2" class="ghost small">15:00–23:00</button>
+          <button id="tpl3" class="ghost small">23:00–07:00</button>
+        </div>
+        <button id="btnDupLast" class="ghost small">Dupliciraj poslednju smenu</button>
+        <button id="btnAddShift" class="success">Dodaj smenu</button>
+        <button id="btnExportCSV" class="primary right">Izvezi CSV (sve smene)</button>
+      </div>
+
+      <div id="shiftTableWrap">
+        <table id="shiftTable">
+          <thead>
+            <tr>
+              <th>Službenik</th>
+              <th>Pozicija</th>
+              <th>Uloga</th>
+              <th>Od</th>
+              <th>Do</th>
+              <th>Sati</th>
+              <th>Status</th>
+              <th>Napomena</th>
+              <th class="no-print"></th>
+            </tr>
+          </thead>
+          <tbody id="shiftBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <div class="footer no-print">PDF: „PDF (Štampa)“ → Sačuvaj kao PDF → podeli. Ako se podaci ne pamte, otvori u Chrome/Safari (ne „preview“) ili koristi PWA. Backup je uvek dostupan.</div>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
+    }
+
+    const KEYS_OLD = ['karnetGuard_v2','zoka_v1','zoka_v3','zoka_v4'];
+    const LS_KEY = 'zoka_v5';
+    let storageOK = true;
+    try{ localStorage.setItem('__zoka_test','ok'); storageOK = localStorage.getItem('__zoka_test') === 'ok'; localStorage.removeItem('__zoka_test'); }catch(e){ storageOK=false; }
+    const warn = document.getElementById('warn'); if(!storageOK){ warn.classList.add('show'); }
+
+    function loadRaw(){ if(!storageOK){ return {events:[],selectedId:null}; }
+      const raw = localStorage.getItem(LS_KEY); if(raw){ try{ return JSON.parse(raw); }catch{} }
+      for(const k of KEYS_OLD){ const r = localStorage.getItem(k); if(r){ try{ const d = JSON.parse(r); localStorage.setItem(LS_KEY, JSON.stringify(d)); return d; }catch{} } }
+      return {events:[],selectedId:null}; }
+    function saveRaw(d){ if(storageOK){ try{ localStorage.setItem(LS_KEY, JSON.stringify(d)); } catch(e){ console.warn('localStorage save failed', e); } }
+    }
+    function downloadBlob(data, name, type){
+      const blob=new Blob([data],{type:type}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a); setTimeout(()=>URL.revokeObjectURL(a.href),1000); return blob;
+    }
+    function downloadJSON(obj, name){ return downloadBlob(JSON.stringify(obj,null,2), name, 'application/json'); }
+
+    let state = loadRaw();
+    const $ = s => document.querySelector(s);
+    const el = (t,a={},...c)=>{ const n=document.createElement(t);
+      for(const [k,v] of Object.entries(a)){
+        if(k==='class') n.className=v; else if(k==='dataset'){ for(const [dk,dv] of Object.entries(v)) n.dataset[dk]=dv; }
+        else if(k.startsWith('on') && typeof v==='function') n.addEventListener(k.slice(2),v);
+        else if(v!==undefined && v!==null) n.setAttribute(k,v);
+      }
+      for(const x of c) n.append(x instanceof Node?x:document.createTextNode(x)); return n; };
+    const uid = ()=>Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4);
+    const minutes=(hhmm)=>{ const [h,m]=(hhmm||'').split(':').map(Number); if([h,m].some(x=>isNaN(x))) return null; return h*60+m; };
+    const hoursDiff=(from,to)=>{ const a=minutes(from), b=minutes(to); if(a===null||b===null) return 0; let end=b; if(b<a) end+=1440; return Math.round(((end-a)/60)*100)/100; };
+    const overlap=(from1,to1,from2,to2)=>{ const toSpan=(from,to)=>{ let s=minutes(from), e=minutes(to); if(s===null||e===null) return null; if(e<s) e+=1440; return [s,e]; }; const A=toSpan(from1,to1), B=toSpan(from2,to2); if(!A||!B) return false; return Math.max(A[0],B[0]) < Math.min(A[1],B[1]); };
+
+    const eventList=$('#eventList'), posList=$('#posList'), positionSelect=$('#guardPosition'), shiftBody=$('#shiftBody');
+    const kpiTotalShifts=$('#kpiTotalShifts'), kpiTotalHours=$('#kpiTotalHours'), kpiDistinctGuards=$('#kpiDistinctGuards');
+    const currentEventLabel=$('#currentEventLabel');
+
+    function persist(){ saveRaw(state); }
+    function selectedEvent(){ return state.events.find(e=>e.id===state.selectedId)||null; }
+    function selectEvent(id){ state.selectedId=id; persist(); renderEvents(); renderPositions(); renderShifts(); }
+
+    function renderEvents(){
+      eventList.innerHTML=''; if(state.events.length===0){ eventList.append(el('div',{class:'muted'},'Nema događaja. Dodaj prvi iznad.')); return; }
+      for(const ev of state.events.slice().sort((a,b)=>(a.date||'').localeCompare(b.date))){
+        const isSel=ev.id===state.selectedId; const sh=ev.shifts?.length||0; const hrs=(ev.shifts||[]).reduce((s,x)=>s+(x.hours||0),0);
+        eventList.append(el('div',{class:'item',dataset:{id:ev.id}},
+          el('div',{}, el('div',{class:'event-name'},ev.name||'Bez naziva'), el('div',{class:'muted small'}, (ev.date? new Date(ev.date).toLocaleDateString('sr-Latn-RS'):'—')) ),
+          el('div',{class:'row',style:'gap:6px'},
+            el('span',{class:'chip'},`${sh} smena`),
+            el('span',{class:'chip'},`${hrs.toFixed(2)} h`),
+            el('button',{class:'ghost',onclick:()=>selectEvent(ev.id)},isSel?'Izabrano':'Otvori')
+          )
+        ));
+      }
+    }
+    function renderPositions(){
+      const ev=selectedEvent(); posList.innerHTML=''; positionSelect.innerHTML='<option value="">— odaberi poziciju —</option>';
+      if(!ev){ posList.append(el('div',{class:'muted'},'Izaberi događaj.')); return; }
+      const positions=ev.positions||[]; if(positions.length===0) posList.append(el('div',{class:'muted'},'Nema pozicija. Dodaj iznad.'));
+      for(const p of positions){
+        posList.append(el('div',{class:'item'},
+          el('div',{}, el('div',{style:'font-weight:600;'},p.name)),
+          el('div',{}, el('button',{class:'ghost',onclick:()=>renamePos(p.id)},'Preimenuj'), ' ', el('button',{class:'ghost',onclick:()=>removePos(p.id)},'Obriši'))
+        ));
+        positionSelect.append(el('option',{value:p.id},p.name));
+      }
+    }
+    function makeTd(label, text, extraClass=''){ const td=el('td',{class:extraClass,'data-label':label}, text); return td; }
+    function renderShifts(){
+      shiftBody.innerHTML='';
+      const ev=selectedEvent(); if(!ev){ currentEventLabel.textContent='nema izabranog događaja'; kpiTotalShifts.textContent='0'; kpiTotalHours.textContent='0'; kpiDistinctGuards.textContent='0'; return; }
+      currentEventLabel.textContent = `${ev.name} • ${(ev.date? new Date(ev.date).toLocaleDateString('sr-Latn-RS'):'')}`;
+      const shifts=(ev.shifts||[]).slice().sort((a,b)=> (a.from||'').localeCompare(b.from||''));
+      const posMap=Object.fromEntries((ev.positions||[]).map(p=>[p.id,p.name]));
+      if(shifts.length===0){ shiftBody.append(el('tr',{}, el('td',{colspan:'9',class:'muted'},'Nema smena. Dodaj iznad.'))); }
+      for(const s of shifts){
+        const tr = el('tr',{});
+        tr.append(
+          makeTd('Službenik', s.guard||''),
+          makeTd('Pozicija', posMap[s.posId] || '—'),
+          makeTd('Uloga', s.role||'—'),
+          makeTd('Od', s.from||''),
+          makeTd('Do', s.to||''),
+          makeTd('Sati', (s.hours||0).toFixed(2)),
+          makeTd('Status', s.status||'Regularna'),
+          makeTd('Napomena', s.note||'—'),
+          (function(){
+            const td = makeTd('', '', 'actions no-print');
+            td.append(
+              el('button',{class:'ghost small',onclick:()=>editShift(s.id)},'Uredi'),
+              el('button',{class:'ghost small',onclick:()=>removeShift(s.id)},'Obriši')
+            );
+            return td;
+          })()
+        );
+        shiftBody.append(tr);
+      }
+      kpiTotalShifts.textContent = (ev.shifts||[]).length;
+      kpiTotalHours.textContent = ((ev.shifts||[]).reduce((sum,x)=>sum+(x.hours||0),0)).toFixed(2);
+      const guards=new Set((ev.shifts||[]).map(s=>s.guard.trim()).filter(Boolean));
+      kpiDistinctGuards.textContent = guards.size;
+    }
+
+    // Events
+    document.getElementById('btnAddEvent').addEventListener('click',()=>{
+      const name=($('#evName').value||'').trim(), date=$('#evDate').value||'';
+      if(!name){ alert('Unesi naziv događaja.'); return; }
+      const ev={id:uid(), name, date, positions:[], shifts:[]}; state.events.push(ev); state.selectedId=ev.id; persist();
+      $('#evName').value=''; $('#evDate').value=''; renderEvents(); renderPositions(); renderShifts();
+    });
+    document.getElementById('btnClearEvents').addEventListener('click',()=>{
+      if(!confirm('Obrisati SVE događaje i podatke?')) return;
+      state={events:[],selectedId:null}; persist(); renderEvents(); renderPositions(); renderShifts();
+    });
+
+    // Positions
+    function addPos(){ const ev=selectedEvent(); if(!ev) return alert('Izaberi događaj.'); const name=($('#posName').value||'').trim(); if(!name) return;
+      ev.positions=ev.positions||[]; ev.positions.push({id:uid(),name}); persist(); $('#posName').value=''; renderPositions(); }
+    function removePos(id){ const ev=selectedEvent(); if(!ev) return; if(!confirm('Obrisati poziciju? (smene ostaju bez dodeljene pozicije)')) return;
+      ev.positions=(ev.positions||[]).filter(p=>p.id!==id); (ev.shifts||[]).forEach(s=>{ if(s.posId===id) s.posId=''; }); persist(); renderPositions(); renderShifts(); }
+    function renamePos(id){ const ev=selectedEvent(); if(!ev) return; const p=(ev.positions||[]).find(x=>x.id===id); if(!p) return;
+      const nn=prompt('Novi naziv pozicije:', p.name); if(!nn||!nn.trim()) return; p.name=nn.trim(); persist(); renderPositions(); renderShifts(); }
+    document.getElementById('btnAddPos').addEventListener('click', addPos);
+
+    // Shifts
+    function addShift(fromDup=null){
+      const ev=selectedEvent(); if(!ev) return alert('Izaberi događaj.');
+      const guard = fromDup?.guard ?? ($('#guardName').value||'').trim();
+      const role  = fromDup?.role  ?? ($('#guardRole').value||'').trim();
+      const posId = fromDup?.posId ?? ($('#guardPosition').value||'');
+      const from  = fromDup?.from  ?? ($('#timeFrom').value||'');
+      const to    = fromDup?.to    ?? ($('#timeTo').value||'');
+      const status= fromDup?.status?? ($('#shiftStatus').value||'Regularna');
+      const note  = fromDup?.note  ?? ($('#shiftNote').value||'');
+      if(!guard){ alert('Unesi ime službenika.'); return; }
+      if(!from || !to){ alert('Unesi vreme od–do.'); return; }
+      const h = hoursDiff(from,to);
+      if(posId){
+        const overl = (ev.shifts||[]).some(s=> s.posId===posId && overlap(s.from,s.to,from,to));
+        if(overl && !confirm('Upozorenje: Postoji preklapanje smena na istoj poziciji. Nastaviti?')) return;
+      }
+      const sh={id:uid(), guard, role, posId, from, to, hours:h, status, note};
+      ev.shifts=ev.shifts||[]; ev.shifts.push(sh); persist();
+      if(!fromDup){ $('#guardName').value=''; $('#guardRole').value=''; $('#timeFrom').value=''; $('#timeTo').value=''; $('#shiftNote').value=''; }
+      renderShifts();
+    }
+    document.getElementById('btnAddShift').addEventListener('click', ()=>addShift());
+    function removeShift(id){ const ev=selectedEvent(); if(!ev) return; ev.shifts=(ev.shifts||[]).filter(s=>s.id!==id); persist(); renderShifts(); }
+    function editShift(id){
+      const ev=selectedEvent(); if(!ev) return; const s=(ev.shifts||[]).find(x=>x.id===id); if(!s) return;
+      const ng=prompt('Službenik:', s.guard); if(ng===null) return;
+      const nr=prompt('Uloga (opciono):', s.role); if(nr===null) return;
+      const nf=prompt('Od (hh:mm):', s.from); if(nf===null) return;
+      const nt=prompt('Do (hh:mm):', s.to); if(nt===null) return;
+      const ns=prompt('Status (Regularna/Zamena/Incident):', s.status||'Regularna'); if(ns===null) return;
+      const nn=prompt('Napomena:', s.note||''); if(nn===null) return;
+      s.guard=(ng||'').trim(); s.role=(nr||'').trim(); s.from=(nf||'').trim(); s.to=(nt||'').trim(); s.status=(ns||'Regularna').trim(); s.note=(nn||'').trim();
+      s.hours=hoursDiff(s.from,s.to); persist(); renderShifts();
+    }
+    document.getElementById('tpl1').addEventListener('click',()=>{ $('#timeFrom').value='07:00'; $('#timeTo').value='15:00'; });
+    document.getElementById('tpl2').addEventListener('click',()=>{ $('#timeFrom').value='15:00'; $('#timeTo').value='23:00'; });
+    document.getElementById('tpl3').addEventListener('click',()=>{ $('#timeFrom').value='23:00'; $('#timeTo').value='07:00'; });
+    document.getElementById('btnDupLast').addEventListener('click',()=>{
+      const ev=selectedEvent(); if(!ev) return alert('Izaberi događaj.');
+      const last= (ev.shifts||[]).slice(-1)[0]; if(!last) return alert('Nema prethodne smene.');
+      addShift(last);
+    });
+
+    // CSV & Share
+    function makeCSV(){
+      const ev=selectedEvent(); if(!ev) return {csv:'', name:'smene.csv'};
+      const posMap=Object.fromEntries((ev.positions||[]).map(p=>[p.id,p.name]));
+      const rows=[['Događaj','Datum','Službenik','Uloga','Pozicija','Od','Do','Sati','Status','Napomena']];
+      for(const s of (ev.shifts||[])){
+        rows.push([ev.name, ev.date||'', s.guard||'', s.role||'', posMap[s.posId]||'', s.from||'', s.to||'', (s.hours||0).toFixed(2), s.status||'', s.note||'']);
+      }
+      const csv = rows.map(r=>r.map(x=>{
+        const s=(x??'').toString();
+        if(s.includes(';')||s.includes('"')||s.includes('\n')) return '"'+s.replace(/"/g,'""')+'"';
+        return s;
+      }).join(';')).join('\n');
+      const name = `smene_${( (selectedEvent()?.name||'dogadjaj').replace(/\s+/g,'_') )}.csv`;
+      return {csv, name};
+    }
+    function exportAllShifts(){ const {csv,name}=makeCSV(); if(!csv){ alert('Izaberi događaj.'); return; } downloadBlob(csv, name, 'text/csv;charset=utf-8;'); }
+    document.getElementById('btnExportCSV').addEventListener('click', exportAllShifts);
+
+    async function shareCSV(){
+      const {csv, name} = makeCSV(); if(!csv){ alert('Izaberi događaj.'); return; }
+      const file = new File([csv], name, {type:'text/csv'});
+      if(navigator.canShare && navigator.canShare({ files: [file] })){
+        try{ await navigator.share({ files:[file], title:'Zoka – CSV', text:'Smene / prisustvo' }); }
+        catch(e){ if(e?.name!=='AbortError') alert('Deljenje nije uspelo: '+e.message); }
+      }else{
+        downloadBlob(csv, name, 'text/csv;charset=utf-8;');
+        alert('CSV je sačuvan. Podeli ga iz Downloads (mail/Viber/WhatsApp).');
+      }
+    }
+    document.getElementById('btnShareCSV').addEventListener('click', shareCSV);
+
+    // Backup/Restore + Share
+    function doBackup(){ downloadJSON(state, `zoka_backup_${new Date().toISOString().slice(0,10)}.json`); }
+    document.getElementById('btnBackup').addEventListener('click', doBackup);
+    document.getElementById('btnBackup2').addEventListener('click', doBackup);
+    async function shareBackup(){
+      const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'});
+      const file = new File([blob], `zoka_backup_${new Date().toISOString().slice(0,10)}.json`, {type:'application/json'});
+      if(navigator.canShare && navigator.canShare({ files: [file] })){
+        try{ await navigator.share({ files:[file], title:'Zoka – backup', text:'Sigurnosna kopija' }); }
+        catch(e){ if(e?.name!=='AbortError') alert('Deljenje nije uspelo: '+e.message); }
+      }else{
+        doBackup();
+      }
+    }
+    document.getElementById('btnShareBackup').addEventListener('click', shareBackup);
+    document.getElementById('btnShareBackup2').addEventListener('click', shareBackup);
+
+    document.getElementById('restoreInput').addEventListener('change',(e)=>{
+      const f=e.target.files?.[0]; if(!f) return;
+      const r=new FileReader(); r.onload=()=>{
+        try{
+          const obj=JSON.parse(r.result);
+          if(!obj || !Array.isArray(obj.events)) throw new Error('Nevažeći fajl');
+          state=obj; persist(); renderEvents(); renderPositions(); renderShifts(); alert('Backup učitan.');
+        }catch(err){ alert('Greška: '+err.message); }
+      }; r.readAsText(f);
+    });
+
+    // PDF (Print)
+    function renderPrint(){
+      const ev=selectedEvent(); if(!ev) return alert('Izaberi događaj.');
+      const posMap=Object.fromEntries((ev.positions||[]).map(p=>[p.id,p.name]));
+      const rows=(ev.shifts||[]).slice().sort((a,b)=> (a.from||'').localeCompare(b.from||''));
+      const win = window.open('', '_blank');
+      const css = `
+        <style>
+          body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial; padding:16px; color:#000;}
+          h2{margin:0 0 8px 0}
+          .muted{color:#555}
+          table{width:100%;border-collapse:collapse}
+          th,td{border:1px solid #999;padding:6px;text-align:left;vertical-align:top;font-size:12px}
+          .sign{margin-top:20px;display:flex;gap:32px}
+          .box{border:1px solid #999;padding:12px;min-height:80px;flex:1}
+        </style>`;
+      const html = [`<h2>${ev.name||'Događaj'} – ${ev.date||''}</h2>`,
+        `<div class="muted">Ukupno smena: ${(ev.shifts||[]).length} • Ukupno sati: ${((ev.shifts||[]).reduce((s,x)=>s+(x.hours||0),0)).toFixed(2)}</div>`,
+        `<table><thead><tr><th>#</th><th>Službenik</th><th>Uloga</th><th>Pozicija</th><th>Od</th><th>Do</th><th>Sati</th><th>Status</th><th>Napomena</th></tr></thead><tbody>`];
+      rows.forEach((s,i)=>{
+        html.push(`<tr><td>${i+1}</td><td>${s.guard||''}</td><td>${s.role||''}</td><td>${posMap[s.posId]||''}</td><td>${s.from||''}</td><td>${s.to||''}</td><td>${(s.hours||0).toFixed(2)}</td><td>${s.status||''}</td><td>${s.note||''}</td></tr>`);
+      });
+      html.push(`</tbody></table><div class="sign"><div class="box">Šef smene:</div><div class="box">Nadzor/klijent:</div></div>`);
+      win.document.write(`<html><head><meta charset="UTF-8"><title>Štampa – ${ev.name||''}</title>${css}</head><body>${html.join('')}</body></html>`);
+      win.document.close(); win.focus(); win.onload = ()=> win.print();
+    }
+    document.getElementById('btnPrint').addEventListener('click', renderPrint);
+
+    // Init
+    renderEvents(); renderPositions(); renderShifts();
+  </script>
+</body>
+</html>
