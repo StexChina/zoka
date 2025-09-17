@@ -1,12 +1,11 @@
-// sw.js
-const CACHE_NAME = 'zoka-cache-v4';
+// sw.js (primer)
+const CACHE_NAME = 'zoka-cache-v5';
 const ASSETS = [
   './',
-  './index.html?v=8',
-  './manifest.webmanifest?v=8',
-  './sw.js?v=8'
+  './index.html?v=81',
+  './manifest.webmanifest?v=81',
+  './sw.js?v=81'
 ];
-/* install/activate/fetch ostaje isto kao ranije */
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS)));
@@ -21,8 +20,6 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
   if (url.origin === location.origin) {
-    e.respondWith(
-      caches.match(e.request).then((cached) => cached || fetch(e.request))
-    );
+    e.respondWith(caches.match(e.request).then((cached) => cached || fetch(e.request)));
   }
 });
