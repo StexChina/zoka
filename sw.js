@@ -1,11 +1,12 @@
-// sw.js - Zoka PWA offline cache
-const CACHE_NAME = 'zoka-cache-v3';
+// sw.js
+const CACHE_NAME = 'zoka-cache-v4';
 const ASSETS = [
   './',
-  './index.html?v=7',
-  './manifest.webmanifest?v=7',
-  './sw.js?v=7'
+  './index.html?v=8',
+  './manifest.webmanifest?v=8',
+  './sw.js?v=8'
 ];
+/* install/activate/fetch ostaje isto kao ranije */
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS)));
